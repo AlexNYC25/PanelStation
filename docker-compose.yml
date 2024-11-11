@@ -1,0 +1,33 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development # changed to development for nodemon to work
+      - POSTGRES_USER=admin         # DB user
+      - POSTGRES_PASSWORD=christmas    # DB password
+      - POSTGRES_DB=comicsdb            # DB name
+      - DB_HOST=db                  # Hostname for the DB container
+      - PARSE_DIR=/app/data         # Directory for Parse Server to store files
+    volumes:
+      - .:/app
+      - /Users/alexismontes/Documents/test:/app/data
+    command: npm run dev
+    depends_on:
+      - db                         # Ensure the database starts before the Node.js app
+
+  db:
+    image: postgres:13             # Use PostgreSQL version 13
+    environment:
+      POSTGRES_USER: admin          # Environment variables for DB setup
+      POSTGRES_PASSWORD: christmas
+      POSTGRES_DB: comicsdb
+    ports:
+      - "5432:5432"                # Expose PostgreSQL port
+    volumes:
+      - pgdata:/var/lib/postgresql/data # Persist data between container restarts
+
+volumes:
+  pgdata:
