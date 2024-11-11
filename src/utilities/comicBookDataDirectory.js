@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 
+import { runQuery } from "../config/dbConnection.js";
+
 const readFilesRecursively = (dir) => {
   let results = [];
   const allowedExtensions = ['.cbz', '.cbr', '.zip', '.rar'];
@@ -34,4 +36,29 @@ const getFilesList = () => {
   return JSON.stringify(filesList, null, 2);
 };
 
-export { getFilesList };
+const addFilesToDatabase = async () => {
+  const dataDir = process.env.DATA_DIR;
+  if (!dataDir) {
+    throw new Error("DATA_DIR environment variable is not set");
+  }
+
+  const filesList = readFilesRecursively(dataDir);
+
+  for (const filePath of filesList) {
+    const fileName = path.basename(filePath);
+    const insertQuery = `
+      INSERT INTO comic_book (file_name, file_path)
+      VALUES ($1, $2)
+      ON CONFLICT (file_path) DO NOTHING;
+    `;
+
+    try {
+      await runQuery(insertQuery, [fileName, filePath]);
+      console.log(`Inserted ${fileName} into comic_book table.`);
+    } catch (err) {
+      console.error(`Error inserting ${fileName} into comic_book table:`, err);
+    }
+  }
+};
+
+export { getFilesList, addFilesToDatabase };
