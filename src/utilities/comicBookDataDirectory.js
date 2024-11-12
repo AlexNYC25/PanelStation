@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 
 import { runQuery } from "../config/dbConnection.js";
 
@@ -36,6 +37,13 @@ const getFilesList = () => {
   return JSON.stringify(filesList, null, 2);
 };
 
+const generateFileHash = (filePath) => {
+  const fileBuffer = fs.readFileSync(filePath);
+  const hashSum = crypto.createHash('sha256');
+  hashSum.update(fileBuffer);
+  return hashSum.digest('hex');
+};
+
 const addFilesToDatabase = async () => {
   const dataDir = process.env.DATA_DIR;
   if (!dataDir) {
@@ -46,14 +54,15 @@ const addFilesToDatabase = async () => {
 
   for (const filePath of filesList) {
     const fileName = path.basename(filePath);
+    const fileHash = generateFileHash(filePath);
     const insertQuery = `
-      INSERT INTO comic_book (file_name, file_path)
-      VALUES ($1, $2)
+      INSERT INTO comic_book (file_name, file_path, file_hash)
+      VALUES ($1, $2, $3)
       ON CONFLICT (file_path) DO NOTHING;
     `;
 
     try {
-      await runQuery(insertQuery, [fileName, filePath]);
+      await runQuery(insertQuery, [fileName, filePath, fileHash]);
       console.log(`Inserted ${fileName} into comic_book table.`);
     } catch (err) {
       console.error(`Error inserting ${fileName} into comic_book table:`, err);
