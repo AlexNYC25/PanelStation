@@ -30,6 +30,7 @@ const checkAndCreateComicBookTable = async () => {
         id SERIAL PRIMARY KEY,
         file_name VARCHAR(255) NOT NULL,
         file_path TEXT NOT NULL UNIQUE,
+        file_hash TEXT NOT NULL UNIQUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
