@@ -2,8 +2,10 @@
 import express from "express";
 
 import {
-  getFilesList,
+  listFiles,
   addFilesToDatabase,
+  listFoldersWithAllowedFiles,
+  addFoldersToDatabase
 } from "../utilities/comicBookDataDirectory.js"; // Update the path as needed
 import { getComicBooks } from "../models/comicBook.js"; // Update the path as needed
 
@@ -16,10 +18,19 @@ router.get("/", (req, res) => {
 
 router.get("/files", (req, res) => {
   try {
-    const filesListJson = getFilesList();
+    const filesListJson = listFiles();
     res.json(JSON.parse(filesListJson));
   } catch (error) {
     res.status(500).send(`Error retrieving files: ${error.message}`);
+  }
+});
+
+router.get("/folders", (req, res) => {
+  try {
+    // Add files to the database
+    res.json(JSON.parse(listFoldersWithAllowedFiles()));
+  } catch (error) {
+    res.status(500).send(`Error ingesting files: ${error.message}`);
   }
 });
 
@@ -28,6 +39,16 @@ router.get("/ingest", (req, res) => {
     addFilesToDatabase();
     // Add files to the database
     res.send("Files ingested successfully");
+  } catch (error) {
+    res.status(500).send(`Error ingesting files: ${error.message}`);
+  }
+});
+
+router.get("/ingestFolders", (req, res) => {
+  try {
+    addFoldersToDatabase();
+    // Add files to the database
+    res.send("Folders ingested successfully");
   } catch (error) {
     res.status(500).send(`Error ingesting files: ${error.message}`);
   }
