@@ -3,6 +3,7 @@ import path from "path";
 import crypto from "crypto";
 
 import { runQuery } from "../config/dbConnection.js";
+import { parseComicFolderName } from "./comicFolderParser.js";
 
 const allowedExtensions = [".cbz", ".cbr", ".zip", ".rar"];
 
@@ -115,9 +116,43 @@ const addFoldersToDatabase = async () => {
   }
 };
 
+const addFolderSeriesToDatabase = async () => {
+  const dataDir = process.env.DATA_DIR;
+  if (!dataDir) {
+    throw new Error("DATA_DIR environment variable is not set");
+  }
+
+  const directories = Array.from(readFilesRecursively(dataDir).directories);
+
+  for (const dir of directories) {
+    let parsedComicDetails = parseComicFolderName(dir);
+    const insertQuery = `
+      INSERT INTO comic_series (series_name, series_year)
+      VALUES ($1, $2)
+      ON CONFLICT (series_name, series_year) DO NOTHING;
+    `;
+
+    try {
+      await runQuery(insertQuery, [
+        parsedComicDetails.series_name,
+        parsedComicDetails.series_year,
+      ]);
+      console.log(
+        `Inserted ${parsedComicDetails.series_name} into comic_series table.`
+      );
+    } catch (err) {
+      console.error(
+        `Error inserting ${parsedComicDetails.series_name} into comic_series table:`,
+        err
+      );
+    }
+  }
+};
+
 export {
   listFiles,
   listFoldersWithAllowedFiles,
   addFilesToDatabase,
   addFoldersToDatabase,
+  addFolderSeriesToDatabase,
 };
