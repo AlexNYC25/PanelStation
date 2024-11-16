@@ -96,7 +96,8 @@ const checkAndCreateComicSeriesTable = async () => {
       id SERIAL PRIMARY KEY,
       series_name VARCHAR(255) NOT NULL,
       folder_id INTEGER REFERENCES comic_folder(id),
-      year INTEGER
+      series_year INTEGER,
+      UNIQUE (series_name, series_year)
     );
   `;
 
