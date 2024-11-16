@@ -5,7 +5,8 @@ import {
   listFiles,
   addFilesToDatabase,
   listFoldersWithAllowedFiles,
-  addFoldersToDatabase
+  addFoldersToDatabase,
+  addFolderSeriesToDatabase
 } from "../utilities/comicBookDataDirectory.js"; // Update the path as needed
 import { getComicBooks } from "../models/comicBook.js"; // Update the path as needed
 
@@ -52,6 +53,17 @@ router.get("/ingestFolders", (req, res) => {
   } catch (error) {
     res.status(500).send(`Error ingesting files: ${error.message}`);
   }
+});
+
+router.get("/ingestFoldersAsSeries", (req, res) => {
+  try {
+    addFolderSeriesToDatabase();
+    // Add files to the database
+    res.send("Folders ingested successfully");
+  } catch (error) {
+    res.status(500).send(`Error ingesting files: ${error.message}`);
+  }
+
 });
 
 router.get("/filesInDB", (req, res) => {
