@@ -1,10 +1,10 @@
-import express from 'express';
+import express from "express";
 
-import { getComicBookPath } from '../models/comicBook.js';
+import { getComicBookPath } from "../models/comicBook.js";
 
 const router = express.Router();
 
-router.get('/file/:id', (req, res) => {
+router.get("/file/:id", (req, res) => {
   const fileId = req.params.id;
   getComicBookPath(fileId)
     .then((result) => {

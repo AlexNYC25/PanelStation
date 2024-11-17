@@ -1,4 +1,4 @@
-import pkg from 'pg';
+import pkg from "pg";
 const { Pool } = pkg;
 
 const pool = new Pool({
@@ -12,10 +12,10 @@ const pool = new Pool({
 const connectToDatabase = async () => {
   try {
     const client = await pool.connect();
-    console.log('Connected to the PostgreSQL database');
+    console.log("Connected to the PostgreSQL database");
     client.release();
   } catch (err) {
-    console.error('Error connecting to the PostgreSQL database', err);
+    console.error("Error connecting to the PostgreSQL database", err);
   }
 };
 
@@ -24,7 +24,7 @@ const runQuery = async (query, params) => {
     const result = await pool.query(query, params);
     return result.rows;
   } catch (err) {
-    console.error('Error running query', err);
+    console.error("Error running query", err);
     throw err;
   }
 };

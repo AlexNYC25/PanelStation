@@ -15,17 +15,17 @@ const getComicBooks = async () => {
 };
 
 const getComicBookPath = async (id) => {
-	const query = `
+  const query = `
 		SELECT file_path FROM comic_book WHERE id = $1;
 	`;
 
-	try {
-		const comicBook = await runQuery(query, [id]);
-		return comicBook;
-	} catch (err) {
-		console.error("Error getting comic book path:", err);
-		throw err;
-	}
+  try {
+    const comicBook = await runQuery(query, [id]);
+    return comicBook;
+  } catch (err) {
+    console.error("Error getting comic book path:", err);
+    throw err;
+  }
 };
 
 export { getComicBooks, getComicBookPath };

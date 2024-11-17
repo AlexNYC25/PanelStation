@@ -175,12 +175,12 @@ const checkAndCreateComicBookRolesTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log('comic_book_roles table created successfully.');
+      console.log("comic_book_roles table created successfully.");
     } else {
-      console.log('comic_book_roles table already exists.');
+      console.log("comic_book_roles table already exists.");
     }
   } catch (err) {
-    console.error('Error checking or creating comic_book_roles table:', err);
+    console.error("Error checking or creating comic_book_roles table:", err);
   }
 };
 
@@ -215,12 +215,12 @@ const checkAndCreateComicBookMetadataTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log('comic_book_metadata table created successfully.');
+      console.log("comic_book_metadata table created successfully.");
     } else {
-      console.log('comic_book_metadata table already exists.');
+      console.log("comic_book_metadata table already exists.");
     }
   } catch (err) {
-    console.error('Error checking or creating comic_book_metadata table:', err);
+    console.error("Error checking or creating comic_book_metadata table:", err);
   }
 };
 
@@ -231,5 +231,5 @@ export {
   checkAndCreateComicSeriesTable,
   checkAndCreateComicSeriesFoldersTable,
   checkAndCreateComicBookRolesTable,
-  checkAndCreateComicBookMetadataTable
+  checkAndCreateComicBookMetadataTable,
 };
