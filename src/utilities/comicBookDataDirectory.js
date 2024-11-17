@@ -101,17 +101,51 @@ const addFoldersToDatabase = async () => {
 
   for (const dir of directories) {
     const folderHash = generateFolderHash(dir);
-    const insertQuery = `
+    const insertFolderQuery = `
       INSERT INTO comic_folder (folder_path, folder_hash)
       VALUES ($1, $2)
-      ON CONFLICT (folder_path) DO NOTHING;
+      ON CONFLICT (folder_path) DO NOTHING
+      RETURNING id;
     `;
 
     try {
-      await runQuery(insertQuery, [dir, folderHash]);
-      console.log(`Inserted ${dir} into comic_folder table.`);
+      const folderResult = await runQuery(insertFolderQuery, [dir, folderHash]);
+      const folderId = folderResult[0]?.id;
+
+      if (folderId) {
+        let parsedComicDetails = parseComicFolderName(dir);
+        const insertSeriesQuery = `
+          INSERT INTO comic_series (series_name, series_year)
+          VALUES ($1, $2)
+          ON CONFLICT (series_name, series_year) DO NOTHING
+          RETURNING id;
+        `;
+
+        const seriesResult = await runQuery(insertSeriesQuery, [
+          parsedComicDetails.series_name,
+          parsedComicDetails.series_year,
+        ]);
+        const seriesId = seriesResult[0]?.id;
+
+        if (seriesId) {
+          const insertMappingQuery = `
+            INSERT INTO comic_series_folders (series_id, folder_id)
+            VALUES ($1, $2)
+            ON CONFLICT (series_id, folder_id) DO NOTHING;
+          `;
+
+          await runQuery(insertMappingQuery, [seriesId, folderId]);
+
+          console.log(
+            `Inserted mapping for series_id ${seriesId} and folder_id ${folderId} into comic_series_folders table.`
+          );
+        }
+      }
     } catch (err) {
-      console.error(`Error inserting ${dir} into comic_folder table:`, err);
+      console.error(
+        `Error inserting ${dir} into comic_folder, comic_series, or comic_series_folders table:`,
+        err
+      );
     }
   }
 };
