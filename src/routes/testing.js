@@ -7,6 +7,8 @@ import {
   listFoldersWithAllowedFiles,
   addFoldersToDatabase,
   addFolderSeriesToDatabase,
+  getFilesWithComicInfoXml,
+  uncompressCbzFile
 } from "../utilities/comicBookDataDirectory.js"; // Update the path as needed
 import { getComicBooks } from "../models/comicBook.js"; // Update the path as needed
 
@@ -74,6 +76,17 @@ router.get("/filesInDB", (req, res) => {
     .catch((error) => {
       res.status(500).send(`Error retrieving files: ${error.message}`);
     });
+});
+
+router.get('/testhasxml', (req, res) => {
+  try {
+    const filesList = getFilesWithComicInfoXml();
+    let firstFile = filesList[0];
+    uncompressCbzFile(firstFile);
+    res.json(filesList);
+  } catch (error) {
+    res.status(500).send(`Error retrieving files: ${error.message}`);
+  }
 });
 
 // Export the router

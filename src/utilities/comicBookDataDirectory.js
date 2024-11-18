@@ -1,9 +1,11 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import AdmZip from 'adm-zip';
 
 import { runQuery } from "../config/dbConnection.js";
 import { parseComicFolderName } from "./comicFolderParser.js";
+import { parseComicFileName, hasComicInfoXml } from "./comicFileParser.js";
 
 const allowedExtensions = [".cbz", ".cbr", ".zip", ".rar"];
 
@@ -183,10 +185,51 @@ const addFolderSeriesToDatabase = async () => {
   }
 };
 
+const getFilesWithComicInfoXml = () => {
+  const dataDir = process.env.DATA_DIR;
+  if (!dataDir) {
+    throw new Error("DATA_DIR environment variable is not set");
+  }
+
+  const filesList = readFilesRecursively(dataDir).files;
+  const filesWithComicInfoXml = filesList.filter(hasComicInfoXml);
+  return filesWithComicInfoXml;
+};
+
+const uncompressCbzFile = (cbzFilePath) => {
+  const cacheDir = process.env.CACHE_DIR;
+  if (!cacheDir) {
+    throw new Error("CACHE_DIR environment variable is not set");
+  }
+
+  if (!fs.existsSync(cacheDir)) {
+    fs.mkdirSync(cacheDir, { recursive: true });
+  }
+
+  const fileName = path.basename(cbzFilePath, path.extname(cbzFilePath));
+  const outputDir = path.join(cacheDir, fileName);
+
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
+  try {
+    const zip = new AdmZip(cbzFilePath);
+    zip.extractAllTo(outputDir, true);
+    console.log(`Extracted ${cbzFilePath} to ${outputDir}`);
+    return outputDir;
+  } catch (err) {
+    console.error(`Error extracting ${cbzFilePath}:`, err);
+    throw err;
+  }
+};
+
 export {
   listFiles,
   listFoldersWithAllowedFiles,
   addFilesToDatabase,
   addFoldersToDatabase,
   addFolderSeriesToDatabase,
+  getFilesWithComicInfoXml,
+  uncompressCbzFile,
 };
