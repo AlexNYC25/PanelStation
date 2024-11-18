@@ -7,7 +7,8 @@ import {
   checkAndCreateComicSeriesTable,
   checkAndCreateComicSeriesFoldersTable,
   checkAndCreateComicBookRolesTable,
-  checkAndCreateComicBookMetadataTable
+  checkAndCreateComicBookMetadataTable,
+  checkAndCreateComicBookMetadataRolesTable
 } from "./src/startup.js";
 import { connectToDatabase } from "./src/config/dbConnection.js";
 
@@ -23,6 +24,7 @@ const initializeDatabase = async () => {
   await checkAndCreateComicSeriesFoldersTable();
   await checkAndCreateComicBookRolesTable();
   await checkAndCreateComicBookMetadataTable();
+  await checkAndCreateComicBookMetadataRolesTable();
 };
 
 initializeDatabase().then(() => {
