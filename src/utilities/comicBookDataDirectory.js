@@ -71,7 +71,7 @@ const addFilesToDatabase = async () => {
     throw new Error("DATA_DIR environment variable is not set");
   }
 
-  const filesList = readFilesRecursively(dataDir);
+  const filesList = readFilesRecursively(dataDir).files;
 
   for (const filePath of filesList) {
     const fileName = path.basename(filePath);
