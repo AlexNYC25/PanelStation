@@ -2,8 +2,8 @@ import { runQuery } from "../config/dbConnection.js";
 
 const getComicBooks = async () => {
   const query = `
-        SELECT * FROM comic_book;
-    `;
+    SELECT * FROM comic_book;
+  `;
 
   try {
     const comicBooks = await runQuery(query);
