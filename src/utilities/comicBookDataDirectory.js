@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
-import AdmZip from 'adm-zip';
+import AdmZip from "adm-zip";
 
 import { runQuery } from "../config/dbConnection.js";
 import { parseComicFolderName } from "./comicFolderParser.js";
@@ -78,17 +78,51 @@ const addFilesToDatabase = async () => {
   for (const filePath of filesList) {
     const fileName = path.basename(filePath);
     const fileHash = generateFileHash(filePath);
-    const insertQuery = `
+    const parentDir = path.dirname(filePath);
+    const insertComicBookQuery = `
       INSERT INTO comic_book (file_name, file_path, file_hash)
       VALUES ($1, $2, $3)
-      ON CONFLICT (file_path) DO NOTHING;
+      ON CONFLICT (file_path) DO NOTHING
+      RETURNING id;
     `;
 
     try {
-      await runQuery(insertQuery, [fileName, filePath, fileHash]);
-      console.log(`Inserted ${fileName} into comic_book table.`);
+      const comicBookResult = await runQuery(insertComicBookQuery, [
+        fileName,
+        filePath,
+        fileHash,
+      ]);
+      const comicBookId = comicBookResult[0]?.id;
+
+      if (comicBookId) {
+        const selectSeriesQuery = `
+          SELECT id FROM comic_series
+          WHERE series_name = $1;
+        `;
+        const parsedComicDetails = parseComicFolderName(parentDir);
+        const seriesResult = await runQuery(selectSeriesQuery, [
+          parsedComicDetails.series_name,
+        ]);
+        const seriesId = seriesResult[0]?.id;
+
+        if (seriesId) {
+          const insertMappingQuery = `
+            INSERT INTO comic_book_series_mapping (comic_book_id, comic_series_id)
+            VALUES ($1, $2)
+            ON CONFLICT (comic_book_id, comic_series_id) DO NOTHING;
+          `;
+
+          await runQuery(insertMappingQuery, [comicBookId, seriesId]);
+          console.log(
+            `Inserted mapping for comic_book_id ${comicBookId} and comic_series_id ${seriesId} into comic_book_series_mapping table.`
+          );
+        }
+      }
     } catch (err) {
-      console.error(`Error inserting ${fileName} into comic_book table:`, err);
+      console.error(
+        `Error inserting ${fileName} into comic_book or comic_book_series_mapping table:`,
+        err
+      );
     }
   }
 };
@@ -152,39 +186,6 @@ const addFoldersToDatabase = async () => {
   }
 };
 
-const addFolderSeriesToDatabase = async () => {
-  const dataDir = process.env.DATA_DIR;
-  if (!dataDir) {
-    throw new Error("DATA_DIR environment variable is not set");
-  }
-
-  const directories = Array.from(readFilesRecursively(dataDir).directories);
-
-  for (const dir of directories) {
-    let parsedComicDetails = parseComicFolderName(dir);
-    const insertQuery = `
-      INSERT INTO comic_series (series_name, series_year)
-      VALUES ($1, $2)
-      ON CONFLICT (series_name, series_year) DO NOTHING;
-    `;
-
-    try {
-      await runQuery(insertQuery, [
-        parsedComicDetails.series_name,
-        parsedComicDetails.series_year,
-      ]);
-      console.log(
-        `Inserted ${parsedComicDetails.series_name} into comic_series table.`
-      );
-    } catch (err) {
-      console.error(
-        `Error inserting ${parsedComicDetails.series_name} into comic_series table:`,
-        err
-      );
-    }
-  }
-};
-
 const getFilesWithComicInfoXml = () => {
   const dataDir = process.env.DATA_DIR;
   if (!dataDir) {
@@ -229,7 +230,6 @@ export {
   listFoldersWithAllowedFiles,
   addFilesToDatabase,
   addFoldersToDatabase,
-  addFolderSeriesToDatabase,
   getFilesWithComicInfoXml,
   uncompressCbzFile,
 };
