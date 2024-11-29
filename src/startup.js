@@ -260,6 +260,40 @@ const checkAndCreateComicBookMetadataRolesTable = async () => {
   }
 };
 
+const checkAndCreateComicBookSeriesMappingTable = async () => {
+  const checkTableQuery = `
+    SELECT EXISTS (
+      SELECT FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      AND table_name = 'comic_book_series_mapping'
+    );
+  `;
+
+  const createTableQuery = `
+    CREATE TABLE comic_book_series_mapping (
+      id SERIAL PRIMARY KEY,
+      comic_book_id INTEGER REFERENCES comic_book(id),
+      comic_series_id INTEGER REFERENCES comic_series(id),
+      UNIQUE (comic_book_id, comic_series_id)
+    );
+  `;
+
+  try {
+    const result = await runQuery(checkTableQuery);
+    const tableExists = result[0].exists;
+
+    if (!tableExists) {
+      await runQuery(createTableQuery);
+      console.log('comic_book_series_mapping table created successfully.');
+    } else {
+      console.log('comic_book_series_mapping table already exists.');
+    }
+  } catch (err) {
+    console.error('Error checking or creating comic_book_series_mapping table:', err);
+  }
+};
+
+
 export {
   checkComicBookDataDirectoryExists,
   checkAndCreateComicBookTable,
@@ -269,4 +303,5 @@ export {
   checkAndCreateComicBookRolesTable,
   checkAndCreateComicBookMetadataTable,
   checkAndCreateComicBookMetadataRolesTable,
+  checkAndCreateComicBookSeriesMappingTable
 };
