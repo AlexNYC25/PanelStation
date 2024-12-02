@@ -2,15 +2,14 @@
 import express from "express";
 
 import {
-  listFiles,
-  addFilesToDatabase,
-  listFoldersWithAllowedFiles,
-  addFoldersToDatabase,
-  addFolderSeriesToDatabase,
   getFilesWithComicInfoXml,
-  uncompressCbzFile
+  uncompressCbzFile,
 } from "../utilities/comicBookDataDirectory.js"; // Update the path as needed
 import { getComicBooks } from "../models/comicBook.js"; // Update the path as needed
+import {
+  addFilesToDatabase,
+  addFoldersToDatabase,
+} from "../services/injestService.js";
 
 const router = express.Router();
 
@@ -19,26 +18,9 @@ router.get("/", (req, res) => {
   res.send("Test route root");
 });
 
-router.get("/files", (req, res) => {
-  try {
-    const filesListJson = listFiles();
-    res.json(JSON.parse(filesListJson));
-  } catch (error) {
-    res.status(500).send(`Error retrieving files: ${error.message}`);
-  }
-});
-
-router.get("/folders", (req, res) => {
-  try {
-    // Add files to the database
-    res.json(JSON.parse(listFoldersWithAllowedFiles()));
-  } catch (error) {
-    res.status(500).send(`Error ingesting files: ${error.message}`);
-  }
-});
-
 router.get("/ingest", (req, res) => {
   try {
+    addFoldersToDatabase();
     addFilesToDatabase();
     // Add files to the database
     res.send("Files ingested successfully");
@@ -47,26 +29,7 @@ router.get("/ingest", (req, res) => {
   }
 });
 
-router.get("/ingestFolders", (req, res) => {
-  try {
-    addFoldersToDatabase();
-    // Add files to the database
-    res.send("Folders ingested successfully");
-  } catch (error) {
-    res.status(500).send(`Error ingesting files: ${error.message}`);
-  }
-});
-
-router.get("/ingestFoldersAsSeries", (req, res) => {
-  try {
-    addFolderSeriesToDatabase();
-    // Add files to the database
-    res.send("Folders ingested successfully");
-  } catch (error) {
-    res.status(500).send(`Error ingesting files: ${error.message}`);
-  }
-});
-
+// TODO: Remove does not seems to be used
 router.get("/filesInDB", (req, res) => {
   const filesListJson = getComicBooks()
     .then((result) => {
@@ -78,10 +41,11 @@ router.get("/filesInDB", (req, res) => {
     });
 });
 
-router.get('/testhasxml', (req, res) => {
+// TODO: Remove just used to test the xml parsing
+router.get("/testhasxml", (req, res) => {
   try {
     const filesList = getFilesWithComicInfoXml();
-    let firstFile = filesList[0];
+    const firstFile = filesList[0];
     uncompressCbzFile(firstFile);
     res.json(filesList);
   } catch (error) {

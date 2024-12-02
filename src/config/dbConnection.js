@@ -9,7 +9,7 @@ const pool = new Pool({
   port: 5432, // Default PostgreSQL port
 });
 
-const connectToDatabase = async () => {
+export const connectToDatabase = async () => {
   try {
     const client = await pool.connect();
     console.log("Connected to the PostgreSQL database");
@@ -19,7 +19,7 @@ const connectToDatabase = async () => {
   }
 };
 
-const runQuery = async (query, params) => {
+export const runQuery = async (query, params) => {
   try {
     const result = await pool.query(query, params);
     return result.rows;
@@ -28,5 +28,3 @@ const runQuery = async (query, params) => {
     throw err;
   }
 };
-
-export { pool, connectToDatabase, runQuery };

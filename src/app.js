@@ -12,7 +12,7 @@ app.use(json()); // Parse JSON bodies
 app.use(urlencoded({ extended: true })); // Parse URL-encoded bodies
 
 // routes
-app.use("/testing", testRoutes); //TODO: REMOVE THIS LINE
+app.use("/testing", testRoutes); // TODO: REMOVE THIS LINE
 app.use("/comicbook", comicBookRoutes);
 app.use("/comicseries", comicSeriesRoutes);
 
