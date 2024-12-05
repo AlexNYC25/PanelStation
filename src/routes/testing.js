@@ -9,7 +9,7 @@ import { getComicBooksInDb } from "../models/comicBook.js"; // Update the path a
 import {
   addFilesToDatabase,
   addFoldersToDatabase,
-} from "../services/injestService.js";
+} from "../services/ingestService.js";
 
 const router = express.Router();
 
