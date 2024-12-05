@@ -36,7 +36,11 @@ export const checkAndCreateComicBookTable = async () => {
 
 export const getComicBooks = async () => {
   const query = `
-    SELECT * FROM comic_book;
+    SELECT
+      id,
+      file_name,
+      file_path 
+    FROM comic_book;
   `;
 
   try {
@@ -44,6 +48,25 @@ export const getComicBooks = async () => {
     return comicBooks;
   } catch (err) {
     console.error("Error getting comic books:", err);
+    throw err;
+  }
+};
+
+export const getComicBookById = async (id) => {
+  const query = `
+    SELECT
+      id,
+      file_name,
+      file_path 
+    FROM comic_book
+    WHERE id = $1;
+  `;
+
+  try {
+    const comicBook = await runQuery(query, [id]);
+    return comicBook;
+  } catch (err) {
+    console.error("Error getting comic book by id:", err);
     throw err;
   }
 };
