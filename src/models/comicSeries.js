@@ -33,7 +33,7 @@ export const checkAndCreateComicSeriesTable = async () => {
   }
 };
 
-export const getAllComicSeries = async () => {
+export const getAllComicSeriesFromDb = async () => {
   const query = `
         SELECT * FROM comic_series;
     `;
@@ -47,7 +47,7 @@ export const getAllComicSeries = async () => {
   }
 };
 
-export const insertComicSeries = async (seriesInfo) => {
+export const insertComicSeriesIntoDb = async (seriesInfo) => {
   const query = `
     INSERT INTO comic_series (series_name, series_year)
     VALUES ($1, $2)
@@ -56,7 +56,7 @@ export const insertComicSeries = async (seriesInfo) => {
   `;
 
   try {
-    const result = await runQuery(query, [seriesInfo.seriesName]);
+    const result = await runQuery(query, [seriesInfo.seriesName, seriesInfo.seriesYear]);
     return { success: true, comicSeriesId: result[0]?.id };
   } catch (err) {
     console.error("Error inserting comic series:", err);
@@ -64,7 +64,22 @@ export const insertComicSeries = async (seriesInfo) => {
   }
 };
 
-export const findSeriesIdFromSeriesName = async (seriesName) => {
+export const getComicSeriesByIdFromDb = async (seriesId) => {
+  const query = `
+    SELECT * FROM comic_series
+    WHERE id = $1;
+  `;
+
+  try {
+    const result = await runQuery(query, [seriesId]);
+    return result[0];
+  } catch (err) {
+    console.error("Error getting comic series by id:", err);
+    throw err;
+  }
+}
+
+export const findSeriesIdFromSeriesNameInDb = async (seriesName) => {
   const query = `
     SELECT id FROM comic_series
     WHERE series_name = $1;

@@ -57,3 +57,23 @@ export const insertComicBookSeriesMapping = async (comicBookId, seriesId) => {
     throw err;
   }
 };
+
+export const getComicBooksBySeriesIdFromDb = async (seriesId) => {
+  const query = `
+    SELECT 
+      comic_book_series_mapping.comic_book_id,
+      comic_book.file_name,
+      comic_book.file_path
+    FROM comic_book_series_mapping
+    LEFT JOIN comic_book ON comic_book.id = comic_book_series_mapping.comic_book_id
+    WHERE comic_series_id = $1;
+  `;
+
+  try {
+    const result = await runQuery(query, [seriesId]);
+    return result;
+  } catch (err) {
+    console.error(`Error getting comic books for series id ${seriesId}:`, err);
+    throw err;
+  }
+}

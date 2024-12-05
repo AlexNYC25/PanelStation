@@ -34,7 +34,7 @@ export const checkAndCreateComicBookTable = async () => {
   }
 };
 
-export const getComicBooks = async () => {
+export const getComicBooksInDb = async () => {
   const query = `
     SELECT
       id,
@@ -71,7 +71,7 @@ export const getComicBookById = async (id) => {
   }
 };
 
-export const getComicBookPath = async (id) => {
+export const getComicBookPathFromDb = async (id) => {
   const query = `
 		SELECT file_path FROM comic_book WHERE id = $1;
 	`;
@@ -85,7 +85,7 @@ export const getComicBookPath = async (id) => {
   }
 };
 
-export const insertComicBook = async (bookInfo) => {
+export const insertComicBookIntoDb = async (bookInfo) => {
   const query = `
     INSERT INTO comic_book (file_name, file_path, file_hash)
     VALUES ($1, $2, $3)

@@ -5,7 +5,7 @@ import {
   getFilesWithComicInfoXml,
   uncompressCbzFile,
 } from "../utilities/comicBookDataDirectory.js"; // Update the path as needed
-import { getComicBooks } from "../models/comicBook.js"; // Update the path as needed
+import { getComicBooksInDb } from "../models/comicBook.js"; // Update the path as needed
 import {
   addFilesToDatabase,
   addFoldersToDatabase,
@@ -31,7 +31,7 @@ router.get("/ingest", (req, res) => {
 
 // TODO: Remove does not seems to be used
 router.get("/filesInDB", (req, res) => {
-  const filesListJson = getComicBooks()
+  const filesListJson = getComicBooksInDb()
     .then((result) => {
       console.log(result);
       res.json(result);

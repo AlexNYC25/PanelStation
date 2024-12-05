@@ -69,3 +69,22 @@ export const uncompressCbzFile = (cbzFilePath) => {
     throw err;
   }
 };
+
+export const compressMultipleCbzFiles = (cbzFiles) => {
+  const cacheDir = process.env.CACHE_DIR;
+  if (!cacheDir) {
+    throw new Error("CACHE_DIR environment variable is not set");
+  }
+
+  const zip = new AdmZip();
+  cbzFiles.forEach((cbzFile) => {
+    zip.addLocalFile(cbzFile);
+  });
+
+  const zipFileName = `${Date.now()}.cbz`;
+  const zipFilePath = path.join(cacheDir, zipFileName);
+  zip.writeZip(zipFilePath);
+
+  console.log(`Compressed files to ${zipFilePath}`);
+  return zipFilePath;
+}

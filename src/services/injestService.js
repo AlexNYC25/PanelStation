@@ -1,3 +1,4 @@
+import path from "path";
 import {
   generateFolderHash,
   generateFileHash,
@@ -6,10 +7,10 @@ import { parseComicFolderName } from "../utilities/comicFolderParser.js";
 import { readFilesRecursively } from "../utilities/comicBookDataDirectory.js";
 import { insertComicFolder } from "../models/comicFolder.js";
 import {
-  insertComicSeries,
-  findSeriesIdFromSeriesName,
+  insertComicSeriesIntoDb,
+  findSeriesIdFromSeriesNameInDb,
 } from "../models/comicSeries.js";
-import { insertComicBook } from "../models/comicBook.js";
+import { insertComicBookIntoDb } from "../models/comicBook.js";
 import { insertMappingIntoComicSeriesFolders } from "../models/comicSeriesFolders.js";
 
 export const addFoldersToDatabase = async () => {
@@ -37,9 +38,13 @@ export const addFoldersToDatabase = async () => {
 
     if (insertFolderResult.success) {
       comicFolderId = insertFolderResult.comicFolderId;
-      console.log(
-        `Inserted folder ${dir} into comic_folder table, with the id ${comicFolderId}`
-      );
+      if (!comicFolderId) {
+        console.log(`Folder ${dir} already exists in the database.`);
+      } else {
+        console.log(
+          `Inserted folder ${dir} into comic_folder table, with the id ${comicFolderId}`
+        );
+      }
     }
 
     if (!comicFolderId) {
@@ -51,7 +56,7 @@ export const addFoldersToDatabase = async () => {
     let insertSeriesResult = null;
 
     try {
-      insertSeriesResult = await insertComicSeries({
+      insertSeriesResult = await insertComicSeriesIntoDb({
         seriesName: parsedComicDetails.series_name,
         seriesYear: parsedComicDetails.series_year,
       });
@@ -106,7 +111,7 @@ export const addFilesToDatabase = async () => {
     let insertComicBookResult = null;
 
     try {
-      insertComicBookResult = await insertComicBook({
+      insertComicBookResult = await insertComicBookIntoDb({
         fileName,
         filePath,
         fileHash,
@@ -117,9 +122,13 @@ export const addFilesToDatabase = async () => {
 
     if (insertComicBookResult.success) {
       comicBookId = insertComicBookResult.comicBookId;
-      console.log(
-        `Inserted file ${fileName} into comic_book table, with the id ${insertComicBookResult.comicBookId}`
-      );
+      if (!comicBookId) {
+        console.log(`Comic book ${fileName} already exists in the database.`);
+      } else {
+        console.log(
+          `Inserted file ${fileName} into comic_book table, with the id ${insertComicBookResult.comicBookId}`
+        );
+      }
     }
 
     if (!comicBookId) {
@@ -131,7 +140,7 @@ export const addFilesToDatabase = async () => {
     let findSeriesIdResult = null;
 
     try {
-      findSeriesIdResult = await findSeriesIdFromSeriesName(
+      findSeriesIdResult = await findSeriesIdFromSeriesNameInDb(
         parsedComicDetails.series_name
       );
     } catch (err) {
