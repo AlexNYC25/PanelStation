@@ -34,6 +34,19 @@ export const checkAndCreateComicBookTable = async () => {
   }
 };
 
+export const deleteComicBookTable = async () => {
+  const query = `
+    DROP TABLE IF EXISTS comic_book;
+  `;
+
+  try {
+    await runQuery(query);
+    console.log("comic_book table deleted successfully.");
+  } catch (err) {
+    console.error("Error deleting comic_book table:", err);
+  }
+};
+
 export const getComicBooksInDb = async () => {
   const query = `
     SELECT

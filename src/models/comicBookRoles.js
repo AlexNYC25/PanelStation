@@ -32,3 +32,16 @@ export const checkAndCreateComicBookRolesTable = async () => {
     console.error("Error checking or creating comic_book_roles table:", err);
   }
 };
+
+export const deleteComicBookRolesTable = async () => {
+  const query = `
+    DROP TABLE IF EXISTS comic_book_roles;
+  `;
+
+  try {
+    await runQuery(query);
+    console.log("comic_book_roles table deleted successfully.");
+  } catch (err) {
+    console.error("Error deleting comic_book_roles table:", err);
+  }
+};

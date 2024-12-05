@@ -36,6 +36,19 @@ export const checkAndCreateComicSeriesFoldersTable = async () => {
   }
 };
 
+export const deleteComicSeriesFoldersTable = async () => {
+  const query = `
+    DROP TABLE IF EXISTS comic_series_folders;
+  `;
+
+  try {
+    await runQuery(query);
+    console.log("comic_series_folders table deleted successfully.");
+  } catch (err) {
+    console.error("Error deleting comic_series_folders table:", err);
+  }
+};
+
 export const insertMappingIntoComicSeriesFolders = async (mappingInfo) => {
   const query = `
     INSERT INTO comic_series_folders (series_id, folder_id)

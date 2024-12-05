@@ -32,6 +32,19 @@ export const checkAndCreateComicFolderTable = async () => {
   }
 };
 
+export const deleteComicFolderTable = async () => {
+  const query = `
+    DROP TABLE IF EXISTS comic_folder;
+  `;
+  try {
+    await runQuery(query);
+    console.log("comic_folder table deleted successfully.");
+  }
+  catch (err) {
+    console.error("Error deleting comic_folder table:", err);
+  }
+};
+
 export const getComicFolders = async () => {
   const query = `
 		SELECT * FROM comic_folder;

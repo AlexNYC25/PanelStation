@@ -39,3 +39,16 @@ export const checkAndCreateComicBookMetadataTable = async () => {
     console.error("Error checking or creating comic_book_metadata table:", err);
   }
 };
+
+export const deleteComicBookMetadataTable = async () => {
+  const deleteTableQuery = `
+    DROP TABLE IF EXISTS comic_book_metadata;
+  `;
+
+  try {
+    await runQuery(deleteTableQuery);
+    console.log("comic_book_metadata table deleted successfully.");
+  } catch (err) {
+    console.error("Error deleting comic_book_metadata table:", err);
+  }
+};

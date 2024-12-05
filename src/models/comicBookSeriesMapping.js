@@ -36,6 +36,18 @@ export const checkAndCreateComicBookSeriesMappingTable = async () => {
   }
 };
 
+export const deleteComicBookSeriesMappingTable = async () => {
+  const query = `
+    DROP TABLE IF EXISTS comic_book_series_mapping;
+  `;
+  try {
+    await runQuery(query);
+    console.log("comic_book_series_mapping table deleted successfully.");
+  } catch (err) {
+    console.error("Error deleting comic_book_series_mapping table:", err);
+  }
+};
+
 export const insertComicBookSeriesMapping = async (comicBookId, seriesId) => {
   const query = `
       INSERT INTO comic_book_series_mapping (comic_book_id, comic_series_id)
