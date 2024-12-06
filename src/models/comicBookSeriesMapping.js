@@ -48,7 +48,8 @@ export const deleteComicBookSeriesMappingTable = async () => {
   }
 };
 
-export const insertComicBookSeriesMapping = async (comicBookId, seriesId) => {
+export const insertComicBookSeriesMappingIntoDb = async (mappingInfo) => {
+  const { comicBookId, seriesId } = mappingInfo;
   const query = `
       INSERT INTO comic_book_series_mapping (comic_book_id, comic_series_id)
       VALUES ($1, $2)

@@ -5,13 +5,14 @@ import {
 } from "../utilities/hashTools.js";
 import { parseComicFolderName } from "../utilities/comicFolderParser.js";
 import { readFilesRecursively } from "../utilities/comicBookDataDirectory.js";
-import { insertComicFolder } from "../models/comicFolder.js";
+import { insertComicFolderIntoDb } from "../models/comicFolder.js";
 import {
   insertComicSeriesIntoDb,
   findSeriesIdFromSeriesNameInDb,
 } from "../models/comicSeries.js";
 import { insertComicBookIntoDb } from "../models/comicBook.js";
 import { insertMappingIntoComicSeriesFolders } from "../models/comicSeriesFolders.js";
+import { insertComicBookSeriesMappingIntoDb } from "../models/comicBookSeriesMapping.js";
 
 export const addFoldersToDatabase = async () => {
   const dataDir = process.env.DATA_DIR;
@@ -28,7 +29,7 @@ export const addFoldersToDatabase = async () => {
     let insertFolderResult = null;
 
     try {
-      insertFolderResult = await insertComicFolder({
+      insertFolderResult = await insertComicFolderIntoDb({
         folderPath: dir,
         folderHash,
       });
@@ -103,6 +104,10 @@ export const addFilesToDatabase = async () => {
   const filesList = readFilesRecursively(dataDir).files;
 
   for (const filePath of filesList) {
+    /*
+      * Extract the file name, hash, and parent directory from the file path.
+      * Insert the comic book into the database table 'comic_book'.
+    */
     const fileName = path.basename(filePath);
     const fileHash = generateFileHash(filePath);
     const parentDir = path.dirname(filePath);
@@ -135,6 +140,11 @@ export const addFilesToDatabase = async () => {
       continue;
     }
 
+    /*
+      * Extract the comic series details from the parent directory of the comic book.
+      * Find the series id from the series name in the database table 'comic_series'.
+      * Insert the mapping into the database table 'comic_series_folders'.
+    */
     const parsedComicDetails = parseComicFolderName(parentDir);
     let seriesId = null;
     let findSeriesIdResult = null;
@@ -161,9 +171,9 @@ export const addFilesToDatabase = async () => {
     let insertMappingResult = null;
 
     try {
-      insertMappingResult = await insertMappingIntoComicSeriesFolders({
-        seriesId,
+      insertMappingResult = await insertComicBookSeriesMappingIntoDb({
         comicBookId,
+        seriesId
       });
     } catch (err) {
       console.error("Error inserting mapping:", err);
@@ -174,5 +184,7 @@ export const addFilesToDatabase = async () => {
         `Inserted mapping for series_id ${seriesId} and comic_book_id ${comicBookId} into comic_series_folders table.`
       );
     }
+
+
   }
 };

@@ -59,7 +59,7 @@ export const getComicFolders = async () => {
   }
 };
 
-export const insertComicFolder = async (folderInfo) => {
+export const insertComicFolderIntoDb = async (folderInfo) => {
   const query = `
     INSERT INTO comic_folder (folder_path, folder_hash)
     VALUES ($1, $2)
