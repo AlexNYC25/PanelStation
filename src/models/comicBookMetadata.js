@@ -18,10 +18,9 @@ export const checkAndCreateComicBookMetadataTable = async () => {
       issue_number VARCHAR(50),
       publisher VARCHAR(255),
       publication_date DATE,
-      synopsis TEXT,
+      summary TEXT,
       genre VARCHAR(255),
-      page_count INTEGER,
-      language VARCHAR(50)
+      page_count INTEGER
     );
   `;
 
@@ -52,3 +51,41 @@ export const deleteComicBookMetadataTable = async () => {
     console.error("Error deleting comic_book_metadata table:", err);
   }
 };
+
+export const insertComicBookMetadataIntoDb = async (metadata) => {
+  const insertQuery = `
+    INSERT INTO comic_book_metadata (
+      comic_book_id,
+      series_name,
+      title,
+      issue_number,
+      publisher,
+      publication_date,
+      summary,
+      genre,
+      page_count
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7, $8, $9
+    ) RETURNING id;
+  `;
+
+  const values = [
+    metadata.comic_book_id,
+    metadata.series_name,
+    metadata.title,
+    metadata.issue_number,
+    metadata.publisher,
+    metadata.publication_date,
+    metadata.summary,
+    metadata.genre,
+    metadata.page_count
+  ];
+
+  try {
+    const result = await runQuery(insertQuery, values);
+    return { success: true, id: result[0].id };
+  } catch (err) {
+    console.error("Error inserting comic book metadata:", err);
+    return { success: false };
+  }
+}

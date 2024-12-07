@@ -48,3 +48,20 @@ export const deleteComicBookMetadataRolesTable = async () => {
     console.error("Error deleting comic_book_metadata_roles table:", err);
   }
 };
+
+export const insertComicBookMetadataRolesIntoDb = async (metadataRoleObj) => {
+  const { metadataId, roleId } = metadataRoleObj;
+  const query = `
+    INSERT INTO comic_book_metadata_roles (metadata_id, role_id)
+    VALUES ($1, $2)
+    RETURNING id;
+  `;
+
+  try {
+    const result = await runQuery(query, [metadataId, roleId]);
+    return { success: true, comicBookMetadataRoleId: result[0].id };
+  } catch (err) {
+    console.error("Error inserting comic_book_metadata_roles:", err);
+    return { success: false };
+  }
+}
