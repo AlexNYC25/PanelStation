@@ -6,6 +6,7 @@ import { deleteComicBookSeriesMappingTable } from "../models/comicBookSeriesMapp
 import { deleteComicFolderTable } from "../models/comicFolder.js";
 import { deleteComicSeriesTable } from "../models/comicSeries.js";
 import { deleteComicSeriesFoldersTable } from "../models/comicSeriesFolders.js";
+import { initializeDatabase } from "../startup.js";
 
 export const purgeService = async (req, res) => {
     try {
@@ -20,6 +21,9 @@ export const purgeService = async (req, res) => {
         await deleteComicSeriesFoldersTable();
         await deleteComicFolderTable();
         await deleteComicSeriesTable();
+
+        // recreate the tables
+        await initializeDatabase();
     
         res.status(200).send("All tables purged successfully.");
     } catch (err) {
