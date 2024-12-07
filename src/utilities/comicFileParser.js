@@ -1,12 +1,7 @@
 import path from 'path'
 import AdmZip from 'adm-zip'
 
-const extractFloatingPointNumbers = (inputString) => {
-  // Regular expression to match floating point numbers
-  const regex = /-?\d+(\.\d+)?/g;
-  const matches = inputString.match(regex);
-  return matches ? matches.join(' ') : '';
-};
+import { extractFloatingPointNumbers } from './stringParser.js'
 
 export const parseComicFileName = (filePath) => {
   const fileName = path.basename(filePath, path.extname(filePath))
