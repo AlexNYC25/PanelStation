@@ -1,7 +1,7 @@
 import path from 'path'
 import AdmZip from 'adm-zip'
 
-import { extractFloatingPointNumbers } from './stringParser.js'
+import { extractFloatingPointNumbers } from './stringTools.js'
 
 export const parseComicFileName = (filePath) => {
   const fileName = path.basename(filePath, path.extname(filePath))
