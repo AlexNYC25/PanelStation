@@ -1,8 +1,6 @@
 import path from 'path'
 import AdmZip from 'adm-zip'
 
-import { extractFloatingPointNumbers } from './stringTools.js'
-
 export const parseComicFileName = (filePath) => {
   const fileName = path.basename(filePath, path.extname(filePath))
   let parsedSeriesDetails = {
@@ -60,7 +58,7 @@ export const parseComicFileName = (filePath) => {
 
   parsedSeriesDetails.series_name = seriesNameParts.join(' ')
   parsedSeriesDetails.series_year = seriesYearParts.length > 0 ? "01-01-" + seriesYearParts[0].replace("(", "").replace(")", "") : null
-  parsedSeriesDetails.issue_number = issueNumberParts.length > 0 ? parseFloat(extractFloatingPointNumbers(issueNumberParts[0])) : 1
+  parsedSeriesDetails.issue_number = issueNumberParts.length > 0 ? Number.parseFloat(issueNumberParts[0]) : 1
 
   return parsedSeriesDetails
 }
