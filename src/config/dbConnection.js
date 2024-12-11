@@ -9,6 +9,10 @@ const pool = new Pool({
   port: 5432, // Default PostgreSQL port
 });
 
+/*
+  * Connect to the PostgreSQL database
+  * @returns {Promise<void>} A promise that resolves if the connection is successful, otherwise rejects with an error
+*/
 export const connectToDatabase = async () => {
   try {
     const client = await pool.connect();
@@ -19,6 +23,12 @@ export const connectToDatabase = async () => {
   }
 };
 
+/*
+  * Run a query against the PostgreSQL database
+  * @param {string} query - The SQL query to run
+  * @param {Array} params - An array of parameters to pass to the query
+  * @returns {Promise<Array>} A promise that resolves with the query results, otherwise rejects with an error
+*/
 export const runQuery = async (query, params) => {
   try {
     const result = await pool.query(query, params);
