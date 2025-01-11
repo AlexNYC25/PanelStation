@@ -1,28 +1,27 @@
 import path from 'path'
 
-const parseComicFolderName = (folderPath) => {
-  const folderName = folderPath.split(path.sep).pop()
-  const regex = /(.*?)(?:\s*\((\d{4})\))(?=\s*-|$)/
-  const match = folderName.match(regex)
+/**
+ * Parses a folder name to extract the series name and year.
+ * @param {string} folderPath - The path to the folder.
+ * @returns {Object} An object containing the series name and year.
+ */
+export const parseComicFolderName = (folderPath) => {
+  const folderName = path.basename(folderPath);
+  const dateRegex = /^(.*?)(?:\s*\((\d{4})\))?$/;
+  const match = folderName.match(dateRegex);
 
-  if (match) {
-    const seriesName = match[1].trim()
-    const seriesYear = match[2] ? parseInt(match[2], 10) : null
-    return { series_name: seriesName, series_year: seriesYear }
-  } else {
-    return { series_name: folderName, series_year: null }
-  }
+  const seriesName = match && match[1] ? match[1].trim() : folderName;
+  const seriesYear = match && match[2] ? parseInt(match[2], 10) : null;
+
+  return { series_name: seriesName, series_year: seriesYear };
+};
+
+export const parseComicFolderNameForYear = (folderPath) => {
+  const folderName = path.basename(folderPath);
+  const dateRegex = /\(\d{4}\)/g;
+  const match = folderName.match(dateRegex);
+
+  const seriesYear = match[0].replace('(', '').replace(')', '');
+  return { seriesYear };
 }
 
-/*
-  // Example usage:
-  const folderPath1 = 'All New Firefly (2022)';
-  const folderPath2 = 'Firefly - Bad Company (2019)';
-  const folderPath3 = 'Some Series Without Year';
-
-  console.log(parseComicFolderName(folderPath1)); // { series_name: 'All New Firefly', series_year: 2022 }
-  console.log(parseComicFolderName(folderPath2)); // { series_name: 'Firefly - Bad Company', series_year: 2019 }
-  console.log(parseComicFolderName(folderPath3)); // { series_name: 'Some Series Without Year', series_year: null }
-  */
-
-export { parseComicFolderName }
