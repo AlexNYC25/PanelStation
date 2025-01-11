@@ -5,12 +5,12 @@ export const checkAndCreateComicBookTable = async () => {
     SELECT EXISTS (
       SELECT FROM information_schema.tables 
       WHERE table_schema = 'public' 
-      AND table_name = 'comic_book'
+      AND table_name = 'comic_book_file'
     );
   `;
 
   const createTableQuery = `
-    CREATE TABLE comic_book (
+    CREATE TABLE comic_book_file (
       id SERIAL PRIMARY KEY,
       file_name VARCHAR(255) NOT NULL,
       file_path TEXT NOT NULL UNIQUE,
@@ -25,9 +25,9 @@ export const checkAndCreateComicBookTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_book table created successfully.");
+      console.log("comic_book_file table created successfully.");
     } else {
-      console.log("comic_book table already exists.");
+      console.log("comic_book_file table already exists.");
     }
   } catch (err) {
     console.error("Error checking or creating comic_book table:", err);
@@ -36,12 +36,12 @@ export const checkAndCreateComicBookTable = async () => {
 
 export const deleteComicBookTable = async () => {
   const query = `
-    DROP TABLE IF EXISTS comic_book;
+    DROP TABLE IF EXISTS comic_book_file;
   `;
 
   try {
     await runQuery(query);
-    console.log("comic_book table deleted successfully.");
+    console.log("comic_book_file table deleted successfully.");
   } catch (err) {
     console.error("Error deleting comic_book table:", err);
   }
@@ -53,7 +53,7 @@ export const getComicBooksInDb = async () => {
       id,
       file_name,
       file_path 
-    FROM comic_book;
+    FROM comic_book_file;
   `;
 
   try {
@@ -71,7 +71,7 @@ export const getComicBookById = async (id) => {
       id,
       file_name,
       file_path 
-    FROM comic_book
+    FROM comic_book_file
     WHERE id = $1;
   `;
 
@@ -84,9 +84,28 @@ export const getComicBookById = async (id) => {
   }
 };
 
+export const getComicBookByHash = async (hash) => {
+  const query = `
+    SELECT
+      id,
+      file_name,
+      file_path 
+    FROM comic_book_file
+    WHERE file_hash = $1;
+  `;
+
+  try {
+    const comicBook = await runQuery(query, [hash]);
+    return comicBook;
+  } catch (err) {
+    console.error("Error getting comic book by hash:", err);
+    throw err;
+  }
+};
+
 export const getComicBookPathFromDb = async (id) => {
   const query = `
-		SELECT file_path FROM comic_book WHERE id = $1;
+		SELECT file_path FROM comic_book_file WHERE id = $1;
 	`;
 
   try {
@@ -100,7 +119,7 @@ export const getComicBookPathFromDb = async (id) => {
 
 export const insertComicBookIntoDb = async (bookInfo) => {
   const query = `
-    INSERT INTO comic_book (file_name, file_path, file_hash)
+    INSERT INTO comic_book_file (file_name, file_path, file_hash)
     VALUES ($1, $2, $3)
     ON CONFLICT (file_path) DO NOTHING
     RETURNING id;
@@ -119,17 +138,3 @@ export const insertComicBookIntoDb = async (bookInfo) => {
   }
 };
 
-export const findSeriesIdFromSeriesName = async (seriesName) => {
-  const query = `
-    SELECT id FROM comic_series
-    WHERE series_name = $1;
-  `;
-
-  try {
-    const result = await runQuery(query, [seriesName]);
-    return { seriesId: result[0]?.id, seriesName };
-  } catch (err) {
-    console.error("Error finding series id:", err);
-    throw err;
-  }
-};
