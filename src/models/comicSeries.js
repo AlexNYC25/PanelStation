@@ -106,3 +106,19 @@ export const findSeriesIdFromSeriesNameInDb = async (seriesName) => {
     throw err;
   }
 };
+
+export const findSeriesIdFromSeriesNameAndYearInDb = async (seriesName, seriesYear) => {
+  const query = `
+    SELECT id FROM comic_series
+    WHERE series_name = $1
+    AND series_year = $2;
+  `;
+
+  try {
+    const result = await runQuery(query, [seriesName, seriesYear]);
+    return { seriesId: result[0]?.id, seriesName, seriesYear };
+  } catch (err) {
+    console.error("Error finding series id from series name and year:", err);
+    throw err;
+  }
+}

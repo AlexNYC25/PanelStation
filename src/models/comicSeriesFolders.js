@@ -53,19 +53,44 @@ export const insertMappingIntoComicSeriesFolders = async (mappingInfo) => {
   const query = `
     INSERT INTO comic_series_folders (series_id, folder_id)
     VALUES ($1, $2)
-    ON CONFLICT (series_id, folder_id) DO NOTHING;
+    ON CONFLICT (series_id, folder_id) DO NOTHING
+    RETURNING id;
   `;
 
   try {
-    await runQuery(query, [mappingInfo.comicSeriesId, mappingInfo.folderId]);
+
+    const result = await runQuery(query, [mappingInfo.seriesId, mappingInfo.folderId]);
+
     console.log(
-      `Inserted mapping for series_id ${mappingInfo.comicSeriesId} and folder_id ${mappingInfo.folderId} into comic_series_folders table.`
+      `Inserted mapping for series_id ${mappingInfo.seriesId} and folder_id ${mappingInfo.folderId} into comic_series_folders table.`
     );
 
-    return { success: true };
+    return { success: true, mappingId: result[0]?.id };
   } catch (err) {
     console.error(
-      `Error inserting mapping for series_id ${mappingInfo.comicSeriesId} and folder_id ${mappingInfo.folderId} into comic_series_folders table:`,
+      `Error inserting mapping for series_id ${mappingInfo.seriesId} and folder_id ${mappingInfo.folderId} into comic_series_folders table:`,
+      err
+    );
+    throw err;
+  }
+};
+
+export const findMappingInComicSeriesFolders = async (mappingInfo) => {
+  const query = `
+    SELECT * FROM comic_series_folders
+    WHERE series_id = $1 AND folder_id = $2;
+  `;
+
+  try {
+    const result = await runQuery(query, [
+      mappingInfo.comicSeriesId,
+      mappingInfo.folderId,
+    ]);
+
+    return result;
+  } catch (err) {
+    console.error(
+      `Error finding mapping for series_id ${mappingInfo.comicSeriesId} and folder_id ${mappingInfo.folderId} in comic_series_folders table:`,
       err
     );
     throw err;

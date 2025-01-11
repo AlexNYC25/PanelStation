@@ -78,3 +78,18 @@ export const insertComicFolderIntoDb = async (folderInfo) => {
     throw err;
   }
 };
+
+export const getComicFolderUsingHash = async (folderHash) => {
+  const query = `
+    SELECT * FROM comic_folder
+    WHERE folder_hash = $1;
+  `;
+
+  try {
+    const comicFolder = await runQuery(query, [folderHash]);
+    return comicFolder[0];
+  } catch (err) {
+    console.error("Error getting comic folder using hash:", err);
+    throw err;
+  }
+}
