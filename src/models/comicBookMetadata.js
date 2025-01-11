@@ -16,11 +16,21 @@ export const checkAndCreateComicBookMetadataTable = async () => {
       series_name VARCHAR(255),
       title VARCHAR(255),
       issue_number VARCHAR(50),
-      publisher VARCHAR(255),
-      publication_date DATE,
+      count INTEGER,
+      volume VARCHAR(50),
+      alt_series_name VARCHAR(255),
+      alt_issue_number VARCHAR(50),
+      alt_count INTEGER,
       summary TEXT,
-      genre VARCHAR(255),
-      page_count INTEGER
+      notes TEXT,
+      publication_date DATE,
+      web VARCHAR(255),
+      page_count INTEGER,
+      format VARCHAR(50),
+      scan_information TEXT,
+      rating VARCHAR(50),
+      main_character_or_team VARCHAR(255),
+      review TEXT
     );
   `;
 
@@ -59,26 +69,50 @@ export const insertComicBookMetadataIntoDb = async (metadata) => {
       series_name,
       title,
       issue_number,
-      publisher,
-      publication_date,
+      count,
+      volume,
+      alt_series_name,
+      alt_issue_number,
+      alt_count,
       summary,
-      genre,
-      page_count
-    ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9
-    ) RETURNING id;
+      notes,
+      publication_date,
+      publisher,
+      imprint,
+      web,
+      page_count,
+      format,
+      scan_information,
+      rating,
+      main_character_or_team,
+      review
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+    RETURNING id;
   `;
 
   const values = [
-    metadata.comic_book_id,
-    metadata.series_name,
+    metadata.comicBookId,
+    metadata.seriesName,
     metadata.title,
-    metadata.issue_number,
-    metadata.publisher,
-    metadata.publication_date,
+    metadata.issueNumber,
+    metadata.count,
+    metadata.volume,
+    metadata.altSeriesName,
+    metadata.altIssueNumber,
+    metadata.altCount,
     metadata.summary,
-    metadata.genre,
-    metadata.page_count
+    metadata.notes,
+    metadata.publicationDate,
+    metadata.publisher,
+    metadata.imprint,
+    metadata.web,
+    metadata.pageCount,
+    metadata.format,
+    metadata.scanInformation,
+    metadata.rating,
+    metadata.mainCharacterOrTeam,
+    metadata.review,
   ];
 
   try {
