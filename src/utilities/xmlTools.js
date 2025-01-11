@@ -1,4 +1,4 @@
-import { isObject, isArray } from "lodash";
+import _ from "lodash";
 import { parseStringPromise } from "xml2js";
 
 /*
@@ -25,10 +25,10 @@ export const convertComicInfoXmlTextToJson = async (xmlText) => {
  */
 export const parseAndPrintOutComicInfoXml = async (comicInfoXmlObj) => {
   for (const [key, value] of Object.entries(comicInfoXmlObj.ComicInfo)) {
-    const isValueArray = isArray(value);
-    const isValueObject = isObject(value);
+    const isValueArray = _.isArray(value);
+    const isValueObject = _.isObject(value);
     const isArrayOfObjects =
-      isValueArray && value.every((item) => isObject(item));
+      isValueArray && value.every((item) => _.isObject(item));
 
     if (isValueObject) {
       console.log(`${key}: ${JSON.stringify(value)}`);
@@ -43,6 +43,25 @@ export const parseAndPrintOutComicInfoXml = async (comicInfoXmlObj) => {
   }
 };
 
+const checkComicinfoXmlRating = (rating) => {
+  // check if the rating string can be converted to a float if it can't return false
+  if (isNaN(parseFloat(rating))) {
+    return false;
+  }
+
+  // check if the rating value is between 0 and 5 inclusive
+  if (parseFloat(rating) < 0 || parseFloat(rating) > 5) {
+    return false;
+  }
+
+  // check if the rating float is at most 2 fractional digits
+  if (rating.split(".")[1].length > 2) {
+    return false;
+  }
+
+  return true;
+}; 
+
 /*
  * This function takes a JSON object and returns the metadata.
  * @param {object} comicInfoXmlObj - The JSON object to parse.
@@ -52,20 +71,68 @@ export const parseAndPrintOutComicInfoXml = async (comicInfoXmlObj) => {
 export const parseComicInfoXmlForMetadata = async (comicInfoXmlObj) => {
   const comicInfo = comicInfoXmlObj.ComicInfo;
 
+  const yesNoValues = ["Yes", "No", "Unknown"];
+  const mangaValues = ["Yes", "No", "Unknown", "YesAndRightToLeft"];
+  const ageRatingValues = [
+    "Unknown",
+    "Adults Only 18+",
+    "Early Childhood",
+    "Everyone",
+    "Everyone 10+",
+    "G",
+    "Kids to Adults",
+    "M",
+    "MA15+",
+    "Mature 17+",
+    "PG",
+    "R18+",
+    "Rating Pending",
+    "Teen",
+    "X18+",
+  ];
+
   let comicInfoMetadata = {
-    series_name: comicInfo.Series ? comicInfo.Series[0] : null,
-    title: comicInfo.Title ? comicInfo.Title[0] : null,
-    issue_number: comicInfo.Number ? comicInfo.Number[0] : null,
-    publisher: comicInfo.Publisher ? comicInfo.Publisher[0] : null,
-    publication_date:
+    title: comicInfo.Title,
+    seriesName: comicInfo.Series,
+    issueNumber: comicInfo.Number,
+    count: comicInfo.Count,
+    volume: comicInfo.Volume,
+    altSeriesName: comicInfo.AlternateSeries,
+    altIssueNumber: comicInfo.AlternateNumber,
+    altCount: comicInfo.AlternateCount,
+    summary: comicInfo.Summary,
+    notes: comicInfo.Notes,
+    publicationDate:
       comicInfo.Day && comicInfo.Month && comicInfo.Year
         ? `${comicInfo.Month[0]}-${comicInfo.Day[0]}-${comicInfo.Year[0]}`
         : null,
-    summary: comicInfo.Summary ? comicInfo.Summary[0] : null,
-    genre: comicInfo.Genre ? comicInfo.Genre[0] : null,
-    page_count: comicInfo.PageCount
-      ? comicInfo.PageCount[0]
-      : comicInfo.Pages[0].Page.length,
+    writer: comicInfo.Writer, // NOTE: comma-separated array
+    penciller: comicInfo.Penciller, // NOTE: comma-separated array
+    inker: comicInfo.Inker, // NOTE: comma-separated array
+    colorist: comicInfo.Colorist, // NOTE: comma-separated array
+    letterer: comicInfo.Letterer, // NOTE: comma-separated array
+    coverArtist: comicInfo.CoverArtist, // NOTE: comma-separated array
+    editor: comicInfo.Editor, // NOTE: comma-separated array
+    publisher: comicInfo.Publisher,
+    imprint: comicInfo.Imprint,
+    genre: comicInfo.Genre ? comicInfo.Genre : null,
+    web: comicInfo.Web,
+    pageCount: comicInfo.PageCount ? comicInfo.PageCount: comicInfo.Pages[0].Page.length,
+    language: comicInfo.LanguageISO,
+    format: comicInfo.Format,
+    blackAndWhite: comicInfo.BlackAndWhite && yesNoValues.includes(comicInfo.BlackAndWhite) ? comicInfo.BlackAndWhite : null,
+    manga: comicInfo.Manga && mangaValues.includes(comicInfo.Manga) ? comicInfo.Manga : null,
+    characters: comicInfo.Character, // NOTE: comma-separated array
+    teams: comicInfo.Team, // NOTE: comma-separated array
+    locations: comicInfo.Location, // NOTE: comma-separated array
+    scanInformation: comicInfo.ScanInformation,
+    storyArc: comicInfo.StoryArc, // NOTE: comma-separated array
+    seriesGroup: comicInfo.SeriesGroup, // NOTE: comma-separated array
+    ageRating: comicInfo.AgeRating && ageRatingValues.includes(comicInfo.AgeRating) ? comicInfo.AgeRating : null,
+    pages: comicInfo.Pages,
+    rating: comicInfo.Rating && checkComicinfoXmlRating(comicInfo.Rating) ? comicInfo.Rating : null,
+    mainCharacterOrTeam: comicInfo.MainCharacterOrTeam,
+    review: comicInfo.Review,
   };
 
   return comicInfoMetadata;
