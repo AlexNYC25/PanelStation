@@ -12,7 +12,7 @@ export const checkAndCreateComicPublisherTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_publisher (
     id SERIAL PRIMARY KEY,
-    publisher_name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
     UNIQUE (publisher_name)
     );
   `;

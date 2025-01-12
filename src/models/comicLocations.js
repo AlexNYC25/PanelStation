@@ -12,8 +12,8 @@ export const checkAndCreateComicLocationsTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_locations (
       id SERIAL PRIMARY KEY,
-      location_name VARCHAR(255) NOT NULL,
-      location_description TEXT
+      name VARCHAR(255) NOT NULL,
+      description TEXT
     );
   `;
 

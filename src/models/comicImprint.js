@@ -12,7 +12,7 @@ export const checkAndCreateComicImprintTable = async () => {
   const createTableQuery = `
         CREATE TABLE comic_imprint (
         id SERIAL PRIMARY KEY,
-        imprint_name VARCHAR(255) NOT NULL,
+        name VARCHAR(255) NOT NULL,
         UNIQUE (imprint_name)
         );
     `;

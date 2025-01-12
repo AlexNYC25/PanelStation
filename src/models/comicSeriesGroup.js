@@ -12,7 +12,7 @@ export const checkAndCreateComicSeriesGroupTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_series_group (
     id SERIAL PRIMARY KEY,
-    group_name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
     UNIQUE (group_name)
     );
   `;

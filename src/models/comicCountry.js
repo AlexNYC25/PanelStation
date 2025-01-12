@@ -12,8 +12,8 @@ export const checkAndCreateComicCountryTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_country (
       id SERIAL PRIMARY KEY,
-      country_name VARCHAR(255) NOT NULL,
-      country_code CHAR(2) NOT NULL,
+      name VARCHAR(255) NOT NULL,
+      code CHAR(2) NOT NULL,
       UNIQUE (country_name, country_code)
     );
   `;

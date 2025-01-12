@@ -12,7 +12,7 @@ export const checkAndCreateComicLanguageTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_language (
       id SERIAL PRIMARY KEY,
-      language_name VARCHAR(255) NOT NULL,
+      name VARCHAR(255) NOT NULL,
       UNIQUE (language_name)
     );
   `;

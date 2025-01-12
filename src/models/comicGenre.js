@@ -12,7 +12,7 @@ export const checkAndCreateComicGenreTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_genre (
       id SERIAL PRIMARY KEY,
-      genre_name VARCHAR(255) NOT NULL,
+      name VARCHAR(255) NOT NULL,
       genre_description TEXT
     );
   `;

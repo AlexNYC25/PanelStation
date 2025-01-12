@@ -12,8 +12,8 @@ export const checkAndCreateComicRatingsTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_ratings (
     id SERIAL PRIMARY KEY,
-    rating_name VARCHAR(255) NOT NULL,
-    rating_value INTEGER NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    value INTEGER NOT NULL,
     UNIQUE (rating_name, rating_value)
     );
   `;

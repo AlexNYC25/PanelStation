@@ -12,7 +12,7 @@ export const checkAndCreateComicFormatTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_format (
       id SERIAL PRIMARY KEY,
-      format_name VARCHAR(255) NOT NULL,
+      name VARCHAR(255) NOT NULL,
       UNIQUE (format_name)
     );
   `;

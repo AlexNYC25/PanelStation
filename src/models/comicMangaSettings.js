@@ -12,8 +12,8 @@ export const checkAndCreateComicMangaSettingsTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_manga_settings (
     id SERIAL PRIMARY KEY,
-    setting_name VARCHAR(255) NOT NULL,
-    setting_value TEXT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    value TEXT NOT NULL,
     UNIQUE (setting_name)
     );
   `;

@@ -12,7 +12,7 @@ export const checkAndCreateComicSeriesStoryArcTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_series_story_arc (
       id SERIAL PRIMARY KEY,
-      story_arc_name VARCHAR(255) NOT NULL,
+      name VARCHAR(255) NOT NULL,
       UNIQUE (story_arc_name)
     );
   `;

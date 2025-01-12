@@ -12,7 +12,7 @@ export const checkAndCreateComicTagsTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_tags (
       id SERIAL PRIMARY KEY,
-      tag_name VARCHAR(255) NOT NULL,
+      name VARCHAR(255) NOT NULL,
       UNIQUE (tag_name)
     );
   `;

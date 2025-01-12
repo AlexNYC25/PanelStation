@@ -12,8 +12,8 @@ export const checkAndCreateComicTeamsTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_teams (
       id SERIAL PRIMARY KEY,
-      team_name VARCHAR(255) NOT NULL,
-      team_description TEXT
+      name VARCHAR(255) NOT NULL,
+      description TEXT
     );
   `;
 
