@@ -9,6 +9,20 @@ import { checkAndCreateComicBookRolesTable } from "./models/comicBookRoles.js";
 import { checkAndCreateComicBookMetadataTable } from "./models/comicBookMetadata.js";
 import { checkAndCreateComicBookMetadataRolesTable } from "./models/comicBookMetadataRoles.js";
 import { checkAndCreateComicBookSeriesMappingTable } from "./models/comicBookSeriesMapping.js";
+import { checkAndCreateComicPublisherTable } from "./models/comicPublisher.js";
+import { checkAndCreateComicImprintTable } from "./models/comicImprint.js";
+import { checkAndCreateComicSeriesGroupTable } from "./models/comicSeriesGroup.js";
+import { checkAndCreateComicSeriesStoryArcTable } from "./models/comicSeriesStoryArc.js";
+import { checkAndCreateComicCountryTable } from "./models/comicCountry.js";
+import { checkAndCreateComicFormatTable } from "./models/comicFormat.js";
+import { checkAndCreateComicLanguageTable } from "./models/comicLanguage.js";
+import { checkAndCreateComicLocationsTable } from "./models/comicLocations.js";
+import { checkAndCreateComicMangaSettingsTable } from "./models/comicMangaSettings.js";
+import { checkAndCreateComicRatingsTable } from "./models/comicRatings.js";
+import { checkAndCreateComicTagsTable } from "./models/comicTags.js";
+import { checkAndCreateComicTeamsTable } from "./models/comicTeams.js";
+import { checkAndCreateComicCharactersTable } from "./models/comicCharacters.js";
+import { checkAndCreateComicGenreTable } from "./models/comicGenre.js";
 
 const checkComicBookDataDirectoryExists = () => {
   const dataDir = process.env.DATA_DIR;
@@ -25,18 +39,51 @@ const checkComicBookDataDirectoryExists = () => {
 };
 
 const initializeDatabase = async () => {
-  await checkAndCreateComicBookTable()
-  await checkAndCreateComicFolderTable()
-  await checkAndCreateComicSeriesTable()
-  await checkAndCreateComicSeriesFoldersTable()
-  await checkAndCreateComicBookRolesTable()
-  await checkAndCreateComicBookMetadataTable()
-  await checkAndCreateComicBookMetadataRolesTable()
-  await checkAndCreateComicBookSeriesMappingTable()
-}
+  // comic_book_file
+  await checkAndCreateComicBookTable();
+  // comic_folder
+  await checkAndCreateComicFolderTable();
+  // comic_series
+  await checkAndCreateComicSeriesTable();
+  // comic_series_folders
+  await checkAndCreateComicSeriesFoldersTable();
+  // comic_book_roles
+  await checkAndCreateComicBookRolesTable();
+  /// comic_publisher
+  await checkAndCreateComicPublisherTable();
+  // comic_imprint
+  await checkAndCreateComicImprintTable();
+  // comic_series_group
+  await checkAndCreateComicSeriesGroupTable();
+  // comic_genre
+  await checkAndCreateComicGenreTable();
+  // comic_book_metadata
+  await checkAndCreateComicBookMetadataTable();
+  // comic_characters
+  await checkAndCreateComicCharactersTable();
+  // comic_country
+  await checkAndCreateComicCountryTable();
+  // comic_format
+  await checkAndCreateComicFormatTable();
+  // comic_language
+  await checkAndCreateComicLanguageTable();
+  // comic_locations
+  await checkAndCreateComicLocationsTable();
+  // comic_manga_settings
+  await checkAndCreateComicMangaSettingsTable();
+  // comic_ratings
+  await checkAndCreateComicRatingsTable();
+  // comic_series_story_arc
+  await checkAndCreateComicSeriesStoryArcTable();
+  // comic_tags
+  await checkAndCreateComicTagsTable();
+  // comic_teams
+  await checkAndCreateComicTeamsTable();
 
-
-export {
-  checkComicBookDataDirectoryExists,
-  initializeDatabase
+  // comic_book_metadata_roles
+  await checkAndCreateComicBookMetadataRolesTable();
+  // comic_book_series_mapping
+  await checkAndCreateComicBookSeriesMappingTable();
 };
+
+export { checkComicBookDataDirectoryExists, initializeDatabase };
