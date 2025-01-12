@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicSeriesTable = async () => {
   const checkTableQuery = `
@@ -24,12 +25,12 @@ export const checkAndCreateComicSeriesTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_series table created successfully.");
+      logger.debug("comic_series table created successfully.");
     } else {
-      console.log("comic_series table already exists.");
+      logger.debug("comic_series table already exists.");
     }
   } catch (err) {
-    console.error("Error checking or creating comic_series table:", err);
+    logger.error("Error checking or creating comic_series table:", err);
   }
 };
 
@@ -40,9 +41,9 @@ export const deleteComicSeriesTable = async () => {
 
   try {
     await runQuery(query);
-    console.log("comic_series table deleted successfully.");
+    logger.debug("comic_series table deleted successfully.");
   } catch (err) {
-    console.error("Error deleting comic_series table:", err);
+    logger.error("Error deleting comic_series table:", err);
   }
 };
 
@@ -55,7 +56,7 @@ export const getAllComicSeriesFromDb = async () => {
     const comicSeries = await runQuery(query);
     return comicSeries;
   } catch (err) {
-    console.error("Error getting comic series:", err);
+    logger.error("Error getting comic series:", err);
     throw err;
   }
 };
@@ -72,7 +73,7 @@ export const insertComicSeriesIntoDb = async (seriesInfo) => {
     const result = await runQuery(query, [seriesInfo.seriesName, seriesInfo.seriesYear]);
     return { success: true, comicSeriesId: result[0]?.id };
   } catch (err) {
-    console.error("Error inserting comic series:", err);
+    logger.error("Error inserting comic series:", err);
     throw err;
   }
 };
@@ -87,7 +88,7 @@ export const getComicSeriesByIdFromDb = async (seriesId) => {
     const result = await runQuery(query, [seriesId]);
     return result[0];
   } catch (err) {
-    console.error("Error getting comic series by id:", err);
+    logger.error("Error getting comic series by id:", err);
     throw err;
   }
 }
@@ -102,7 +103,7 @@ export const findSeriesIdFromSeriesNameInDb = async (seriesName) => {
     const result = await runQuery(query, [seriesName]);
     return { seriesId: result[0]?.id, seriesName };
   } catch (err) {
-    console.error("Error finding series id from series name:", err);
+    logger.error("Error finding series id from series name:", err);
     throw err;
   }
 };
@@ -118,7 +119,7 @@ export const findSeriesIdFromSeriesNameAndYearInDb = async (seriesName, seriesYe
     const result = await runQuery(query, [seriesName, seriesYear]);
     return { seriesId: result[0]?.id, seriesName, seriesYear };
   } catch (err) {
-    console.error("Error finding series id from series name and year:", err);
+    logger.error("Error finding series id from series name and year:", err);
     throw err;
   }
 }

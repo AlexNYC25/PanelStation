@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicSeriesStoryArcTable = async () => {
   const checkTableQuery = `
@@ -13,7 +14,7 @@ export const checkAndCreateComicSeriesStoryArcTable = async () => {
     CREATE TABLE comic_series_story_arc (
       id SERIAL PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
-      UNIQUE (story_arc_name)
+      UNIQUE (name)
     );
   `;
 
@@ -23,12 +24,12 @@ export const checkAndCreateComicSeriesStoryArcTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_series_story_arc table created successfully.");
+      logger.debug("comic_series_story_arc table created successfully.");
     } else {
-      console.log("comic_series_story_arc table already exists.");
+      logger.debug("comic_series_story_arc table already exists.");
     }
   } catch (err) {
-    console.error("Error checking or creating comic_series_story_arc table:", err);
+    logger.error("Error checking or creating comic_series_story_arc table:", err);
   }
 };
 
@@ -39,8 +40,8 @@ export const deleteComicSeriesStoryArcTable = async () => {
 
   try {
     await runQuery(query);
-    console.log("comic_series_story_arc table deleted successfully.");
+    logger.debug("comic_series_story_arc table deleted successfully.");
   } catch (err) {
-    console.error("Error deleting comic_series_story_arc table:", err);
+    logger.error("Error deleting comic_series_story_arc table:", err);
   }
 };

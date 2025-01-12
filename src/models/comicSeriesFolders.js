@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicSeriesFoldersTable = async () => {
   const checkTableQuery = `
@@ -24,12 +25,12 @@ export const checkAndCreateComicSeriesFoldersTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_series_folders table created successfully.");
+      logger.debug("comic_series_folders table created successfully.");
     } else {
-      console.log("comic_series_folders table already exists.");
+      logger.debug("comic_series_folders table already exists.");
     }
   } catch (err) {
-    console.error(
+    logger.error(
       "Error checking or creating comic_series_folders table:",
       err
     );
@@ -43,9 +44,9 @@ export const deleteComicSeriesFoldersTable = async () => {
 
   try {
     await runQuery(query);
-    console.log("comic_series_folders table deleted successfully.");
+    logger.debug("comic_series_folders table deleted successfully.");
   } catch (err) {
-    console.error("Error deleting comic_series_folders table:", err);
+    logger.error("Error deleting comic_series_folders table:", err);
   }
 };
 
@@ -61,13 +62,13 @@ export const insertMappingIntoComicSeriesFolders = async (mappingInfo) => {
 
     const result = await runQuery(query, [mappingInfo.seriesId, mappingInfo.folderId]);
 
-    console.log(
+    logger.debug(
       `Inserted mapping for series_id ${mappingInfo.seriesId} and folder_id ${mappingInfo.folderId} into comic_series_folders table.`
     );
 
     return { success: true, mappingId: result[0]?.id };
   } catch (err) {
-    console.error(
+    logger.error(
       `Error inserting mapping for series_id ${mappingInfo.seriesId} and folder_id ${mappingInfo.folderId} into comic_series_folders table:`,
       err
     );
@@ -89,7 +90,7 @@ export const findMappingInComicSeriesFolders = async (mappingInfo) => {
 
     return result;
   } catch (err) {
-    console.error(
+    logger.error(
       `Error finding mapping for series_id ${mappingInfo.comicSeriesId} and folder_id ${mappingInfo.folderId} in comic_series_folders table:`,
       err
     );

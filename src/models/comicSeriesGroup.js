@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicSeriesGroupTable = async () => {
   const checkTableQuery = `
@@ -13,7 +14,7 @@ export const checkAndCreateComicSeriesGroupTable = async () => {
     CREATE TABLE comic_series_group (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    UNIQUE (group_name)
+    UNIQUE (name)
     );
   `;
 
@@ -23,12 +24,12 @@ export const checkAndCreateComicSeriesGroupTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_series_group table created successfully.");
+      logger.debug("comic_series_group table created successfully.");
     } else {
-      console.log("comic_series_group table already exists.");
+      logger.debug("comic_series_group table already exists.");
     }
   } catch (err) {
-    console.error("Error checking or creating comic_series_group table:", err);
+    logger.error("Error checking or creating comic_series_group table:", err);
   }
 };
 
@@ -39,8 +40,8 @@ export const deleteComicSeriesGroupTable = async () => {
 
   try {
     await runQuery(query);
-    console.log("comic_series_group table deleted successfully.");
+    logger.debug("comic_series_group table deleted successfully.");
   } catch (err) {
-    console.error("Error deleting comic_series_group table:", err);
+    logger.error("Error deleting comic_series_group table:", err);
   }
 };

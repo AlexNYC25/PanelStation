@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicBookRolesTable = async () => {
   const checkTableQuery = `
@@ -28,12 +29,12 @@ export const checkAndCreateComicBookRolesTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_book_roles table created successfully.");
+      logger.debug("comic_book_roles table created successfully.");
     } else {
-      console.log("comic_book_roles table already exists.");
+      logger.debug("comic_book_roles table already exists.");
     }
   } catch (err) {
-    console.error("Error checking or creating comic_book_roles table:", err);
+    logger.error("Error checking or creating comic_book_roles table:", err);
   }
 };
 
@@ -44,9 +45,9 @@ export const deleteComicBookRolesTable = async () => {
 
   try {
     await runQuery(query);
-    console.log("comic_book_roles table deleted successfully.");
+    logger.debug("comic_book_roles table deleted successfully.");
   } catch (err) {
-    console.error("Error deleting comic_book_roles table:", err);
+    logger.error("Error deleting comic_book_roles table:", err);
   }
 };
 
@@ -75,10 +76,10 @@ export const insertComicBookRolesIntoDb = async (roles) => {
       roles.letterer,
       roles.penciller,
     ]);
-    console.log("Inserted comic book roles into comic_book_roles table.");
+    logger.debug("Inserted comic book roles into comic_book_roles table.");
     return { success: true, comicBookRolesId: result[0].id };
   } catch (err) {
-    console.error("Error inserting comic book roles:", err);
+    logger.error("Error inserting comic book roles:", err);
     return null;
   }
 }

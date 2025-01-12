@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicCountryTable = async () => {
   const checkTableQuery = `
@@ -14,7 +15,7 @@ export const checkAndCreateComicCountryTable = async () => {
       id SERIAL PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
       code CHAR(2) NOT NULL,
-      UNIQUE (country_name, country_code)
+      UNIQUE (name, code)
     );
   `;
 
@@ -24,12 +25,12 @@ export const checkAndCreateComicCountryTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_country table created successfully.");
+      logger.debug("comic_country table created successfully.");
     } else {
-      console.log("comic_country table already exists.");
+      logger.debug("comic_country table already exists.");
     }
   } catch (err) {
-    console.error("Error checking or creating comic_country table:", err);
+    logger.error("Error checking or creating comic_country table:", err);
   }
 };
 
@@ -40,8 +41,8 @@ export const deleteComicCountryTable = async () => {
 
   try {
     await runQuery(query);
-    console.log("comic_country table deleted successfully.");
+    logger.debug("comic_country table deleted successfully.");
   } catch (err) {
-    console.error("Error deleting comic_country table:", err);
+    logger.error("Error deleting comic_country table:", err);
   }
 };

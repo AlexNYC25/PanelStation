@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicLanguageTable = async () => {
   const checkTableQuery = `
@@ -13,7 +14,7 @@ export const checkAndCreateComicLanguageTable = async () => {
     CREATE TABLE comic_language (
       id SERIAL PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
-      UNIQUE (language_name)
+      UNIQUE (name)
     );
   `;
 
@@ -23,12 +24,12 @@ export const checkAndCreateComicLanguageTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_language table created successfully.");
+      logger.debug("comic_language table created successfully.");
     } else {
-      console.log("comic_language table already exists.");
+      logger.debug("comic_language table already exists.");
     }
   } catch (err) {
-    console.error("Error checking or creating comic_language table:", err);
+    logger.error("Error checking or creating comic_language table:", err);
   }
 };
 
@@ -39,8 +40,8 @@ export const deleteComicLanguageTable = async () => {
 
   try {
     await runQuery(query);
-    console.log("comic_language table deleted successfully.");
+    logger.debug("comic_language table deleted successfully.");
   } catch (err) {
-    console.error("Error deleting comic_language table:", err);
+    logger.error("Error deleting comic_language table:", err);
   }
 };

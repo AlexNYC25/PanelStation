@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicFolderTable = async () => {
   const checkTableQuery = `
@@ -23,12 +24,12 @@ export const checkAndCreateComicFolderTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_folder table created successfully.");
+      logger.debug("comic_folder table created successfully.");
     } else {
-      console.log("comic_folder table already exists.");
+      logger.debug("comic_folder table already exists.");
     }
   } catch (err) {
-    console.error("Error checking or creating comic_folder table:", err);
+    logger.error("Error checking or creating comic_folder table:", err);
   }
 };
 
@@ -38,10 +39,10 @@ export const deleteComicFolderTable = async () => {
   `;
   try {
     await runQuery(query);
-    console.log("comic_folder table deleted successfully.");
+    logger.debug("comic_folder table deleted successfully.");
   }
   catch (err) {
-    console.error("Error deleting comic_folder table:", err);
+    logger.error("Error deleting comic_folder table:", err);
   }
 };
 
@@ -54,7 +55,7 @@ export const getComicFolders = async () => {
     const comicFolders = await runQuery(query);
     return comicFolders;
   } catch (err) {
-    console.error("Error getting comic folders:", err);
+    logger.error("Error getting comic folders:", err);
     throw err;
   }
 };
@@ -74,7 +75,7 @@ export const insertComicFolderIntoDb = async (folderInfo) => {
     ]);
     return { success: true, comicFolderId: result[0]?.id };
   } catch (err) {
-    console.error("Error inserting comic folder:", err);
+    logger.error("Error inserting comic folder:", err);
     throw err;
   }
 };
@@ -89,7 +90,7 @@ export const getComicFolderUsingHash = async (folderHash) => {
     const comicFolder = await runQuery(query, [folderHash]);
     return comicFolder[0];
   } catch (err) {
-    console.error("Error getting comic folder using hash:", err);
+    logger.error("Error getting comic folder using hash:", err);
     throw err;
   }
 }

@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicBookSeriesMappingTable = async () => {
   const checkTableQuery = `
@@ -24,12 +25,12 @@ export const checkAndCreateComicBookSeriesMappingTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_book_series_mapping table created successfully.");
+      logger.debug("comic_book_series_mapping table created successfully.");
     } else {
-      console.log("comic_book_series_mapping table already exists.");
+      logger.debug("comic_book_series_mapping table already exists.");
     }
   } catch (err) {
-    console.error(
+    logger.error(
       "Error checking or creating comic_book_series_mapping table:",
       err
     );
@@ -42,9 +43,9 @@ export const deleteComicBookSeriesMappingTable = async () => {
   `;
   try {
     await runQuery(query);
-    console.log("comic_book_series_mapping table deleted successfully.");
+    logger.debug("comic_book_series_mapping table deleted successfully.");
   } catch (err) {
-    console.error("Error deleting comic_book_series_mapping table:", err);
+    logger.error("Error deleting comic_book_series_mapping table:", err);
   }
 };
 
@@ -58,12 +59,12 @@ export const insertComicBookSeriesMappingIntoDb = async (mappingInfo) => {
 
   try {
     await runQuery(query, [comicBookId, seriesId]);
-    console.log(
+    logger.debug(
       `Inserted mapping for comic_book_id ${comicBookId} and comic_series_id ${seriesId} into comic_book_series_mapping table.`
     );
     return { success: true };
   } catch (err) {
-    console.error(
+    logger.error(
       `Error inserting mapping for comic_book_id ${comicBookId} and comic_series_id ${seriesId}:`,
       err
     );
@@ -86,7 +87,7 @@ export const getComicBooksBySeriesIdFromDb = async (seriesId) => {
     const result = await runQuery(query, [seriesId]);
     return result;
   } catch (err) {
-    console.error(`Error getting comic books for series id ${seriesId}:`, err);
+    logger.error(`Error getting comic books for series id ${seriesId}:`, err);
     throw err;
   }
 }

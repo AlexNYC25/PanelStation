@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicBookMetadataTable = async () => {
   const checkTableQuery = `
@@ -40,12 +41,12 @@ export const checkAndCreateComicBookMetadataTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_book_metadata table created successfully.");
+      logger.debug("comic_book_metadata table created successfully.");
     } else {
-      console.log("comic_book_metadata table already exists.");
+      logger.debug("comic_book_metadata table already exists.");
     }
   } catch (err) {
-    console.error("Error checking or creating comic_book_metadata table:", err);
+    logger.error("Error checking or creating comic_book_metadata table:", err);
   }
 };
 
@@ -56,9 +57,9 @@ export const deleteComicBookMetadataTable = async () => {
 
   try {
     await runQuery(deleteTableQuery);
-    console.log("comic_book_metadata table deleted successfully.");
+    logger.debug("comic_book_metadata table deleted successfully.");
   } catch (err) {
-    console.error("Error deleting comic_book_metadata table:", err);
+    logger.error("Error deleting comic_book_metadata table:", err);
   }
 };
 
@@ -119,7 +120,7 @@ export const insertComicBookMetadataIntoDb = async (metadata) => {
     const result = await runQuery(insertQuery, values);
     return { success: true, id: result[0].id };
   } catch (err) {
-    console.error("Error inserting comic book metadata:", err);
+    logger.error("Error inserting comic book metadata:", err);
     return { success: false };
   }
 }

@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicBookMetadataRolesTable = async () => {
   const checkTableQuery = `
@@ -24,12 +25,12 @@ export const checkAndCreateComicBookMetadataRolesTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_book_metadata_roles table created successfully.");
+      logger.debug("comic_book_metadata_roles table created successfully.");
     } else {
-      console.log("comic_book_metadata_roles table already exists.");
+      logger.debug("comic_book_metadata_roles table already exists.");
     }
   } catch (err) {
-    console.error(
+    logger.error(
       "Error checking or creating comic_book_metadata_roles table:",
       err
     );
@@ -43,9 +44,9 @@ export const deleteComicBookMetadataRolesTable = async () => {
 
   try {
     await runQuery(query);
-    console.log("comic_book_metadata_roles table deleted successfully.");
+    logger.debug("comic_book_metadata_roles table deleted successfully.");
   } catch (err) {
-    console.error("Error deleting comic_book_metadata_roles table:", err);
+    logger.error("Error deleting comic_book_metadata_roles table:", err);
   }
 };
 
@@ -61,7 +62,7 @@ export const insertComicBookMetadataRolesIntoDb = async (metadataRoleObj) => {
     const result = await runQuery(query, [metadataId, roleId]);
     return { success: true, comicBookMetadataRoleId: result[0].id };
   } catch (err) {
-    console.error("Error inserting comic_book_metadata_roles:", err);
+    logger.error("Error inserting comic_book_metadata_roles:", err);
     return { success: false };
   }
 }

@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicTagsTable = async () => {
   const checkTableQuery = `
@@ -13,7 +14,7 @@ export const checkAndCreateComicTagsTable = async () => {
     CREATE TABLE comic_tags (
       id SERIAL PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
-      UNIQUE (tag_name)
+      UNIQUE (name)
     );
   `;
 
@@ -23,12 +24,12 @@ export const checkAndCreateComicTagsTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_tags table created successfully.");
+      logger.debug("comic_tags table created successfully.");
     } else {
-      console.log("comic_tags table already exists.");
+      logger.debug("comic_tags table already exists.");
     }
   } catch (err) {
-    console.error("Error checking or creating comic_tags table:", err);
+    logger.error("Error checking or creating comic_tags table:", err);
   }
 };
 
@@ -39,8 +40,8 @@ export const deleteComicTagsTable = async () => {
 
   try {
     await runQuery(query);
-    console.log("comic_tags table deleted successfully.");
+    logger.debug("comic_tags table deleted successfully.");
   } catch (err) {
-    console.error("Error deleting comic_tags table:", err);
+    logger.error("Error deleting comic_tags table:", err);
   }
 };

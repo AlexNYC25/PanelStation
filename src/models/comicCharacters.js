@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicCharactersTable = async () => {
   const checkTableQuery = `
@@ -23,12 +24,12 @@ export const checkAndCreateComicCharactersTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_characters table created successfully.");
+      logger.debug("comic_characters table created successfully.");
     } else {
-      console.log("comic_characters table already exists.");
+      logger.debug("comic_characters table already exists.");
     }
   } catch (err) {
-    console.error("Error checking or creating comic_characters table:", err);
+    logger.error("Error checking or creating comic_characters table:", err);
   }
 };
 
@@ -39,8 +40,8 @@ export const deleteComicCharactersTable = async () => {
 
   try {
     await runQuery(query);
-    console.log("comic_characters table deleted successfully.");
+    logger.debug("comic_characters table deleted successfully.");
   } catch (err) {
-    console.error("Error deleting comic_characters table:", err);
+    logger.error("Error deleting comic_characters table:", err);
   }
 };

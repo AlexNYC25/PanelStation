@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicMangaSettingsTable = async () => {
   const checkTableQuery = `
@@ -14,7 +15,7 @@ export const checkAndCreateComicMangaSettingsTable = async () => {
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     value TEXT NOT NULL,
-    UNIQUE (setting_name)
+    UNIQUE (name)
     );
   `;
 
@@ -24,12 +25,12 @@ export const checkAndCreateComicMangaSettingsTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_manga_settings table created successfully.");
+      logger.debug("comic_manga_settings table created successfully.");
     } else {
-      console.log("comic_manga_settings table already exists.");
+      logger.debug("comic_manga_settings table already exists.");
     }
   } catch (err) {
-    console.error(
+    logger.error(
       "Error checking or creating comic_manga_settings table:",
       err
     );
@@ -43,8 +44,8 @@ export const deleteComicMangaSettingsTable = async () => {
 
   try {
     await runQuery(query);
-    console.log("comic_manga_settings table deleted successfully.");
+    logger.debug("comic_manga_settings table deleted successfully.");
   } catch (err) {
-    console.error("Error deleting comic_manga_settings table:", err);
+    logger.error("Error deleting comic_manga_settings table:", err);
   }
 };

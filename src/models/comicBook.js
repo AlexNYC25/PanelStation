@@ -1,4 +1,5 @@
 import { runQuery } from "../config/dbConnection.js";
+import { logger } from "../utilities/logger.js";
 
 export const checkAndCreateComicBookTable = async () => {
   const checkTableQuery = `
@@ -25,12 +26,12 @@ export const checkAndCreateComicBookTable = async () => {
 
     if (!tableExists) {
       await runQuery(createTableQuery);
-      console.log("comic_book_file table created successfully.");
+      logger.debug("comic_book_file table created successfully.");
     } else {
-      console.log("comic_book_file table already exists.");
+      logger.debug("comic_book_file table already exists.");
     }
   } catch (err) {
-    console.error("Error checking or creating comic_book table:", err);
+    logger.error("Error checking or creating comic_book table:", err);
   }
 };
 
@@ -41,9 +42,9 @@ export const deleteComicBookTable = async () => {
 
   try {
     await runQuery(query);
-    console.log("comic_book_file table deleted successfully.");
+    logger.debug("comic_book_file table deleted successfully.");
   } catch (err) {
-    console.error("Error deleting comic_book table:", err);
+    logger.error("Error deleting comic_book table:", err);
   }
 };
 
@@ -60,7 +61,7 @@ export const getComicBooksInDb = async () => {
     const comicBooks = await runQuery(query);
     return comicBooks;
   } catch (err) {
-    console.error("Error getting comic books:", err);
+    logger.error("Error getting comic books:", err);
     throw err;
   }
 };
@@ -79,7 +80,7 @@ export const getComicBookById = async (id) => {
     const comicBook = await runQuery(query, [id]);
     return comicBook;
   } catch (err) {
-    console.error("Error getting comic book by id:", err);
+    logger.error("Error getting comic book by id:", err);
     throw err;
   }
 };
@@ -98,7 +99,7 @@ export const getComicBookByHash = async (hash) => {
     const comicBook = await runQuery(query, [hash]);
     return comicBook;
   } catch (err) {
-    console.error("Error getting comic book by hash:", err);
+    logger.error("Error getting comic book by hash:", err);
     throw err;
   }
 };
@@ -112,7 +113,7 @@ export const getComicBookPathFromDb = async (id) => {
     const comicBook = await runQuery(query, [id]);
     return comicBook;
   } catch (err) {
-    console.error("Error getting comic book path:", err);
+    logger.error("Error getting comic book path:", err);
     throw err;
   }
 };
@@ -133,7 +134,7 @@ export const insertComicBookIntoDb = async (bookInfo) => {
     ]);
     return { success: true, comicBookId: result[0]?.id };
   } catch (err) {
-    console.error("Error inserting comic book:", err);
+    logger.error("Error inserting comic book:", err);
     throw err;
   }
 };
