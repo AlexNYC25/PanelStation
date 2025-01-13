@@ -78,8 +78,6 @@ export const insertComicBookMetadataIntoDb = async (metadata) => {
       summary,
       notes,
       publication_date,
-      publisher,
-      imprint,
       web,
       page_count,
       format,
@@ -88,7 +86,7 @@ export const insertComicBookMetadataIntoDb = async (metadata) => {
       main_character_or_team,
       review
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
     RETURNING id;
   `;
 
@@ -105,8 +103,6 @@ export const insertComicBookMetadataIntoDb = async (metadata) => {
     metadata.summary,
     metadata.notes,
     metadata.publicationDate,
-    metadata.publisher,
-    metadata.imprint,
     metadata.web,
     metadata.pageCount,
     metadata.format,
