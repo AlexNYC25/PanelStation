@@ -1,5 +1,6 @@
 import _ from "lodash";
 import { parseStringPromise } from "xml2js";
+import { logger } from "./logger.js";
 
 /*
  * This function takes a string of XML text and converts it to a JSON object.
@@ -12,7 +13,7 @@ export const convertComicInfoXmlTextToJson = async (xmlText) => {
     const xmlObject = await parseStringPromise(xmlText);
     return xmlObject;
   } catch (err) {
-    console.error("Error converting comicinfo.xml text to JSON:", err);
+    logger.error("Error converting comicinfo.xml text to JSON:", err);
     throw err;
   }
 };
@@ -31,14 +32,14 @@ export const parseAndPrintOutComicInfoXml = async (comicInfoXmlObj) => {
       isValueArray && value.every((item) => _.isObject(item));
 
     if (isValueObject) {
-      console.log(`${key}: ${JSON.stringify(value)}`);
+      logger.debug(`${key}: ${JSON.stringify(value)}`);
     } else if (isValueArray) {
-      console.log(`${key}: ${value.join(", ")}`);
+      logger.debug(`${key}: ${value.join(", ")}`);
     } else if (isArrayOfObjects) {
-      console.log(`${key}:`);
-      console.log(JSON.stringify(value, null, 2));
+      logger.debug(`${key}:`);
+      logger.debug(JSON.stringify(value, null, 2));
     } else {
-      console.log(`${key}: ${value}`);
+      logger.debug(`${key}: ${value}`);
     }
   }
 };
@@ -95,11 +96,11 @@ export const parseComicInfoXmlForMetadata = async (comicInfoXmlObj) => {
     title: comicInfo.Title,
     seriesName: comicInfo.Series,
     issueNumber: comicInfo.Number,
-    count: comicInfo.Count,
+    count: isNaN(parseInt(comicInfo.Count)) ? null : parseInt(comicInfo.Count),
     volume: comicInfo.Volume,
     altSeriesName: comicInfo.AlternateSeries,
     altIssueNumber: comicInfo.AlternateNumber,
-    altCount: comicInfo.AlternateCount,
+    altCount: isNaN(parseInt(comicInfo.AlternateCount)) ? null : parseInt(comicInfo.AlternateCount),
     summary: comicInfo.Summary,
     notes: comicInfo.Notes,
     publicationDate:
@@ -117,7 +118,7 @@ export const parseComicInfoXmlForMetadata = async (comicInfoXmlObj) => {
     imprint: comicInfo.Imprint,
     genre: comicInfo.Genre ? comicInfo.Genre : null,
     web: comicInfo.Web,
-    pageCount: comicInfo.PageCount ? comicInfo.PageCount: comicInfo.Pages[0].Page.length,
+    pageCount: isNaN(parseInt(comicInfo.PageCount)) ? null : parseInt(comicInfo.PageCount),
     language: comicInfo.LanguageISO,
     format: comicInfo.Format,
     blackAndWhite: comicInfo.BlackAndWhite && yesNoValues.includes(comicInfo.BlackAndWhite) ? comicInfo.BlackAndWhite : null,
