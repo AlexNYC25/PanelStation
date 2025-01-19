@@ -62,6 +62,23 @@ export const getAllComicSeriesFromDb = async () => {
 };
 
 export const insertComicSeriesIntoDb = async (seriesInfo) => {
+
+  // Check if the values are valid strings
+  if (typeof seriesInfo.seriesName !== "string") {
+    logger.error(
+      `Error inserting comic series into comic_series table: Series name is not a string. ${seriesInfo.seriesName} + ${typeof seriesInfo.seriesName}`,
+    );
+    return { success: false };
+  }
+
+  // check if the series year is a valid integer
+  if (!Number.isInteger(seriesInfo.seriesYear)) {
+    logger.error(
+      `Error inserting comic series into comic_series table: Series year is not an integer. ${seriesInfo.seriesYear} + ${typeof seriesInfo.seriesYear}`,
+    );
+    return { success: false };
+  }
+
   const query = `
     INSERT INTO comic_series (series_name, series_year)
     VALUES ($1, $2)
