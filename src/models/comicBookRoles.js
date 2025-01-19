@@ -83,3 +83,31 @@ export const insertComicBookRolesIntoDb = async (roles) => {
     return null;
   }
 }
+
+export const checkRoleInDB = async (title, name) => {
+  const query = `
+    SELECT id FROM comic_book_roles WHERE ${title} = $1;
+  `;
+
+  try {
+    const result = await runQuery(query, [name]);
+    return result.length > 0;
+  } catch (err) {
+    logger.error(`Error checking ${name} in comic_book_roles table:`, err);
+    return false;
+  }
+}
+
+export const getComicBookRolesId = async (title, name) => {
+  const query = `
+    SELECT id FROM comic_book_roles WHERE ${title} = $1;
+  `;
+
+  try {
+    const result = await runQuery(query, [name]);
+    return result[0].id;
+  } catch (err) {
+    logger.error(`Error getting id for ${name} in comic_book_roles table:`, err);
+    return null;
+  }
+}
