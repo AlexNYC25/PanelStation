@@ -51,6 +51,19 @@ export const deleteComicSeriesFoldersTable = async () => {
 };
 
 export const insertMappingIntoComicSeriesFolders = async (mappingInfo) => {
+
+  // Check if the values are valid integers
+  if (
+    !Number.isInteger(mappingInfo.seriesId) ||
+    !Number.isInteger(mappingInfo.folderId)
+  ) {
+    logger.error(
+      `Error inserting mapping for series_id ${mappingInfo.seriesId} and folder_id ${mappingInfo.folderId} into comic_series_folders table:`,
+      "series_id and folder_id must be integers."
+    );
+    return { success: false };
+  }
+
   const query = `
     INSERT INTO comic_series_folders (series_id, folder_id)
     VALUES ($1, $2)
