@@ -7,8 +7,7 @@ import {
 } from "../utilities/comicBookDataDirectory.js"; // Update the path as needed
 import { getComicBooksInDb } from "../models/comicBook.js"; // Update the path as needed
 import {
-  addFilesToDatabase,
-  addFoldersToDatabase,
+  addFilesToDatabase
 } from "../services/ingestService.js";
 
 const router = express.Router();
@@ -20,7 +19,6 @@ router.get("/", (req, res) => {
 
 router.get("/ingest", (req, res) => {
   try {
-    addFoldersToDatabase();
     addFilesToDatabase();
     // Add files to the database
     res.send("Files ingested successfully");
