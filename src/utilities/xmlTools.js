@@ -92,48 +92,54 @@ export const parseComicInfoXmlForMetadata = async (comicInfoXmlObj) => {
     "X18+",
   ];
 
+  /*
+    NOTE: The following fields are arrays, but we are only taking the first element, this is a result of the way the XML is parsed, that it gets all values for a key as an array
+    and so we are just taking the first value assuming that the key exists in the object, this is fine since in the comicinfo schema the most each key can have is one value  
+    but some values for kets such as Writer, Penciller, Inker, Colorist, Letterer, CoverArtist, Editor, Genre, Character, Team, Location, StoryArc, SeriesGroup are comma-separated arrays
+    written as a string, that will need to be split into an array of strings as some point in the flow
+  */
   let comicInfoMetadata = {
-    title: comicInfo.Title,
-    seriesName: comicInfo.Series,
-    issueNumber: comicInfo.Number,
+    title: comicInfo.Title ? comicInfo.Title[0] : null,
+    seriesName: comicInfo.Series ? comicInfo.Series[0] : null,
+    issueNumber: comicInfo.Number ? comicInfo.Number[0] : null,
     count: isNaN(parseInt(comicInfo.Count)) ? null : parseInt(comicInfo.Count),
-    volume: comicInfo.Volume,
-    altSeriesName: comicInfo.AlternateSeries,
-    altIssueNumber: comicInfo.AlternateNumber,
+    volume: comicInfo.Volume ? comicInfo.Volume[0] : null,
+    altSeriesName: comicInfo.AlternateSeries ? comicInfo.AlternateSeries[0] : null,
+    altIssueNumber: comicInfo.AlternateNumber ? comicInfo.AlternateNumber[0] : null,
     altCount: isNaN(parseInt(comicInfo.AlternateCount)) ? null : parseInt(comicInfo.AlternateCount),
-    summary: comicInfo.Summary,
-    notes: comicInfo.Notes,
+    summary: comicInfo.Summary ? comicInfo.Summary[0] : null,
+    notes: comicInfo.Notes ? comicInfo.Notes[0] : null,
     publicationDate:
       comicInfo.Day && comicInfo.Month && comicInfo.Year
         ? `${comicInfo.Month[0]}-${comicInfo.Day[0]}-${comicInfo.Year[0]}`
         : null,
-    writer: comicInfo.Writer, // NOTE: comma-separated array
-    penciller: comicInfo.Penciller, // NOTE: comma-separated array
-    inker: comicInfo.Inker, // NOTE: comma-separated array
-    colorist: comicInfo.Colorist, // NOTE: comma-separated array
-    letterer: comicInfo.Letterer, // NOTE: comma-separated array
-    coverArtist: comicInfo.CoverArtist, // NOTE: comma-separated array
-    editor: comicInfo.Editor, // NOTE: comma-separated array
-    publisher: comicInfo.Publisher,
-    imprint: comicInfo.Imprint,
+    writer: comicInfo.Writer ? comicInfo.Writer[0] : null, // NOTE: comma-separated array as a string
+    penciller: comicInfo.Penciller ? comicInfo.Penciller[0] : null, // NOTE: comma-separated array as a string
+    inker: comicInfo.Inker ? comicInfo.Inker[0] : null, // NOTE: comma-separated array as a string
+    colorist: comicInfo.Colorist ? comicInfo.Colorist[0] : null, // NOTE: comma-separated array as a string
+    letterer: comicInfo.Letterer ? comicInfo.Letterer[0] : null, // NOTE: comma-separated array as a string
+    coverArtist: comicInfo.CoverArtist ? comicInfo.CoverArtist[0] : null, // NOTE: comma-separated array as a string
+    editor: comicInfo.Editor ? comicInfo.Editor[0] : null, // NOTE: comma-separated array
+    publisher: comicInfo.Publisher ? comicInfo.Publisher[0] : null,
+    imprint: comicInfo.Imprint ? comicInfo.Imprint[0] : null,
     genre: comicInfo.Genre ? comicInfo.Genre : null,
-    web: comicInfo.Web,
+    web: comicInfo.Web ? comicInfo.Web[0] : null,
     pageCount: isNaN(parseInt(comicInfo.PageCount)) ? null : parseInt(comicInfo.PageCount),
-    language: comicInfo.LanguageISO,
-    format: comicInfo.Format,
+    language: comicInfo.LanguageISO ? comicInfo.LanguageISO[0] : null,
+    format: comicInfo.Format ? comicInfo.Format[0] : null,
     blackAndWhite: comicInfo.BlackAndWhite && yesNoValues.includes(comicInfo.BlackAndWhite) ? comicInfo.BlackAndWhite : null,
     manga: comicInfo.Manga && mangaValues.includes(comicInfo.Manga) ? comicInfo.Manga : null,
-    characters: comicInfo.Character, // NOTE: comma-separated array
-    teams: comicInfo.Team, // NOTE: comma-separated array
-    locations: comicInfo.Location, // NOTE: comma-separated array
-    scanInformation: comicInfo.ScanInformation,
-    storyArc: comicInfo.StoryArc, // NOTE: comma-separated array
-    seriesGroup: comicInfo.SeriesGroup, // NOTE: comma-separated array
+    characters: comicInfo.Character ? comicInfo.Character[0] : null, // NOTE: comma-separated array
+    teams: comicInfo.Team ? comicInfo.Team[0] : null, // NOTE: comma-separated array
+    locations: comicInfo.Location ? comicInfo.Location[0] : null, // NOTE: comma-separated array
+    scanInformation: comicInfo.ScanInformation ? comicInfo.ScanInformation[0] : null,
+    storyArc: comicInfo.StoryArc ? comicInfo.StoryArc[0] : null, // NOTE: comma-separated array
+    seriesGroup: comicInfo.SeriesGroup ? comicInfo.SeriesGroup[0] : null, // NOTE: comma-separated array
     ageRating: comicInfo.AgeRating && ageRatingValues.includes(comicInfo.AgeRating) ? comicInfo.AgeRating : null,
     pages: comicInfo.Pages,
     rating: comicInfo.Rating && checkComicinfoXmlRating(comicInfo.Rating) ? comicInfo.Rating : null,
-    mainCharacterOrTeam: comicInfo.MainCharacterOrTeam,
-    review: comicInfo.Review,
+    mainCharacterOrTeam: comicInfo.MainCharacterOrTeam ? comicInfo.MainCharacterOrTeam[0] : null,
+    review: comicInfo.Review ? comicInfo.Review[0] : null,
   };
 
   return comicInfoMetadata;
