@@ -13,7 +13,7 @@ export const checkAndCreateComicBookMetadataTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_book_metadata (
       id SERIAL PRIMARY KEY,
-      comic_book_id INTEGER REFERENCES comic_book(id),
+      comic_book_id INTEGER REFERENCES comic_book_file(id),
       series_name VARCHAR(255),
       title VARCHAR(255),
       issue_number VARCHAR(50),
@@ -64,6 +64,25 @@ export const deleteComicBookMetadataTable = async () => {
 };
 
 export const insertComicBookMetadataIntoDb = async (metadata) => {
+
+  // check if metadata value that are ment to be integers are actually integers
+  if (metadata.count !== null && !Number.isInteger(metadata.count)) {
+    throw new Error("count must be an integer or null: " + metadata.count + " is not an integer");
+    
+  }
+
+  if (metadata.altCount !== null && !Number.isInteger(metadata.altCount)) {
+    throw new Error("altCount must be an integer");
+  }
+
+  if (metadata.pageCount !== null && !Number.isInteger(metadata.pageCount)) {
+    throw new Error("pageCount must be an integer");
+  }
+
+  if (metadata.comicBookId === null || metadata.comicBookId === undefined) {
+    throw new Error("comicBookId cannot be null");
+  }
+
   const insertQuery = `
     INSERT INTO comic_book_metadata (
       comic_book_id,
