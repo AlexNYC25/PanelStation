@@ -119,6 +119,12 @@ export const getComicBookPathFromDb = async (id) => {
 };
 
 export const insertComicBookIntoDb = async (bookInfo) => {
+
+  // check the bookInfo object to see if it has the required properties
+  if (!bookInfo.fileName || !bookInfo.filePath || !bookInfo.fileHash) {
+    throw new Error("Missing required properties in bookInfo object.");
+  }
+
   const query = `
     INSERT INTO comic_book_file (file_name, file_path, file_hash)
     VALUES ($1, $2, $3)
@@ -133,8 +139,9 @@ export const insertComicBookIntoDb = async (bookInfo) => {
       bookInfo.fileHash,
     ]);
     return { success: true, comicBookId: result[0]?.id };
+    
   } catch (err) {
-    logger.error("Error inserting comic book:", err);
+    logger.error("Error inserting comic book by running the insert query:", err);
     throw err;
   }
 };
