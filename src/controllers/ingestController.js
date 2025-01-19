@@ -1,12 +1,10 @@
 import {
-  addFilesToDatabase,
-  addFoldersToDatabase,
+  addFilesToDatabase
 } from "../services/ingestService.js";
 
 export const startIngest = async (req, res) => {
   try {
-    await addFoldersToDatabase();
-    await addFilesToDatabase();
+    addFilesToDatabase();
 
     res.status(200).send("Ingest complete");
   } catch (err) {
