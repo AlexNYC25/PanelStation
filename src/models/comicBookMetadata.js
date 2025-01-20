@@ -31,7 +31,8 @@ export const checkAndCreateComicBookMetadataTable = async () => {
       scan_information TEXT,
       rating VARCHAR(50),
       main_character_or_team VARCHAR(255),
-      review TEXT
+      review TEXT,
+      publisher_id INTEGER REFERENCES comic_publisher(id)
     );
   `;
 

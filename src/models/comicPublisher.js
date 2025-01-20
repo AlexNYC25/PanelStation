@@ -45,3 +45,32 @@ export const deleteComicPublisherTable = async () => {
     logger.error("Error deleting comic_publisher table:", err);
   }
 };
+
+export const insertComicPublisherIntoDb = async (publisherName) => {
+  const query = `
+    INSERT INTO comic_publisher (name)
+    VALUES ($1)
+    ON CONFLICT (name) DO NOTHING;
+  `;
+
+  try {
+    await runQuery(query, [publisherName]);
+  } catch (err) {
+    logger.error("Error inserting comic publisher into db:", err);
+  }
+};
+
+export const getPublisherId = async (publisherName) => {
+  const query = `
+    SELECT id
+    FROM comic_publisher
+    WHERE name = $1;
+  `;
+
+  try {
+    const result = await runQuery(query, [publisherName]);
+    return result[0]?.id;
+  } catch (err) {
+    logger.error("Error getting publisher id:", err);
+  }
+};
