@@ -133,8 +133,17 @@ export const insertComicBookMetadataIntoDb = async (metadata) => {
   ];
 
   try {
-    const result = await runQuery(insertQuery, values);
-    return { success: true, id: result[0].id };
+    const insertResult = await runQuery(insertQuery, values);
+
+    if (insertResult.length > 0) {
+      logger.debug(
+        `Inserted comicinfo.xml contents for comic book with the id ${metadata.comicBookId} into the comic_book_metadata table`
+      )
+      return { success: true, id: insertResult[0].id };
+    }
+
+    return {success: false}
+    
   } catch (err) {
     logger.error("Error inserting comic book metadata:", err);
     return { success: false };

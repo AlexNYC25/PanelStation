@@ -62,38 +62,61 @@ export const getAllComicSeriesFromDb = async () => {
 };
 
 export const insertComicSeriesIntoDb = async (seriesInfo) => {
-
-  // Check if the values are valid strings
   if (typeof seriesInfo.seriesName !== "string") {
     logger.error(
-      `Error inserting comic series into comic_series table: Series name is not a string. ${seriesInfo.seriesName} + ${typeof seriesInfo.seriesName}`,
+      `Error inserting comic series into comic_series table: Series name is not a string. ${seriesInfo.seriesName} + ${typeof seriesInfo.seriesName}`
     );
     return { success: false };
   }
 
-  // check if the series year is a valid integer
   if (!Number.isInteger(seriesInfo.seriesYear)) {
     logger.error(
-      `Error inserting comic series into comic_series table: Series year is not an integer. ${seriesInfo.seriesYear} + ${typeof seriesInfo.seriesYear}`,
+      `Error inserting comic series into comic_series table: Series year is not an integer. ${seriesInfo.seriesYear} + ${typeof seriesInfo.seriesYear}`
     );
     return { success: false };
   }
 
-  const query = `
+  const insertQuery = `
     INSERT INTO comic_series (series_name, series_year)
     VALUES ($1, $2)
     ON CONFLICT (series_name, series_year) DO NOTHING
     RETURNING id;
   `;
 
+  const selectQuery = `
+    SELECT id FROM comic_series
+    WHERE series_name = $1 AND series_year = $2;
+  `;
+
   try {
-    const result = await runQuery(query, [seriesInfo.seriesName, seriesInfo.seriesYear]);
-    return { success: true, comicSeriesId: result[0]?.id };
+    const insertResult = await runQuery(insertQuery, [
+      seriesInfo.seriesName,
+      seriesInfo.seriesYear,
+    ]);
+
+    if (insertResult.length > 0) {
+      // Insert successful, return the new ID
+      return { success: true, comicSeriesId: insertResult[0].id };
+    }
+
+    // If insert did nothing (conflict), query for the existing ID
+    const selectResult = await runQuery(selectQuery, [
+      seriesInfo.seriesName,
+      seriesInfo.seriesYear,
+    ]);
+
+    if (selectResult.length > 0) {
+      return { success: true, comicSeriesId: selectResult[0].id };
+    }
+
+    // If no ID is found, return failure
+    return { success: false };
   } catch (err) {
-    logger.error("Error inserting comic series:", err);
+    logger.error("Error inserting or selecting comic series:", err);
     throw err;
   }
 };
+
 
 export const getComicSeriesByIdFromDb = async (seriesId) => {
   const query = `

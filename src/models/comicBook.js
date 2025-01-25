@@ -125,20 +125,44 @@ export const insertComicBookIntoDb = async (bookInfo) => {
     throw new Error("Missing required properties in bookInfo object.");
   }
 
-  const query = `
+  const insertQuery = `
     INSERT INTO comic_book_file (file_name, file_path, file_hash)
     VALUES ($1, $2, $3)
     ON CONFLICT (file_path) DO NOTHING
     RETURNING id;
   `;
 
+  const selectQuery = `
+    SELECT id FROM comic_book_file
+    WHERE file_path = $1 AND file_hash = $2;
+  `;
+
   try {
-    const result = await runQuery(query, [
+    const insertResult = await runQuery(insertQuery, [
       bookInfo.fileName,
       bookInfo.filePath,
       bookInfo.fileHash,
     ]);
-    return { success: true, comicBookId: result[0]?.id };
+
+    if (insertResult.length > 0) {
+      const comicBookId = Number.parseInt(insertResult[0].id);
+      logger.debug(
+        `Inserted comic book ${bookInfo.fileName} into comic_book_file table with id ${comicBookId}.`
+      );
+      return comicBookId;
+    }
+
+    const selectResult = await runQuery(selectQuery, [
+      bookInfo.filePath,
+      bookInfo.fileHash,
+    ]);
+
+    if (selectResult.length > 0) {
+      logger.debug(
+        `Comic book ${bookInfo.fileName} already exists in comic_book_file table.`
+      );
+      return Number.parseInt(selectResult[0].id);
+    }
     
   } catch (err) {
     logger.error("Error inserting comic book by running the insert query:", err);
