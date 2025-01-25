@@ -13,7 +13,7 @@ export const checkAndCreateComicBookSeriesMappingTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_book_series_mapping (
       id SERIAL PRIMARY KEY,
-      comic_book_id INTEGER REFERENCES comic_book(id),
+      comic_book_id INTEGER REFERENCES comic_book_file(id),
       comic_series_id INTEGER REFERENCES comic_series(id),
       UNIQUE (comic_book_id, comic_series_id)
     );
