@@ -1,5 +1,8 @@
 import _ from "lodash";
 
+import { logger } from "../utilities/logger.js";
+import { getfileNameAndParentDirFromPath } from "../utilities/fileTools.js";
+import { readFilesRecursively } from "../utilities/comicBookDataDirectory.js";
 import {
   generateFolderHash,
   generateFileHash,
@@ -12,43 +15,25 @@ import {
   parseComicFolderNameForYear,
   parseComicFolderNameForName,
 } from "../utilities/comicFolderParser.js";
-import { readFilesRecursively } from "../utilities/comicBookDataDirectory.js";
 import {
   hasComicInfoXml,
   extractComicInfoXml,
 } from "../utilities/comicFileParser.js";
-import { getfileNameAndParentDirFromPath } from "../utilities/fileTools.js";
-import { logger } from "../utilities/logger.js";
 
-import {
-  insertComicFolderIntoDb,
-  getComicFolderUsingHash,
-} from "../models/comicFolder.js";
-import {
-  insertComicSeriesIntoDb,
-  findSeriesIdFromSeriesNameAndYearInDb,
-} from "../models/comicSeries.js";
-import {
-  getComicBookByHash,
-  insertComicBookIntoDb,
-} from "../models/comicBook.js";
-import {
-  insertMappingIntoComicSeriesFolders,
-  findMappingInComicSeriesFolders,
-} from "../models/comicSeriesFolders.js";
+import { insertComicFolderIntoDb } from "../models/comicFolder.js";
+import { insertComicSeriesIntoDb } from "../models/comicSeries.js";
+import { insertComicBookIntoDb } from "../models/comicBook.js";
+import { insertMappingIntoComicSeriesFolders } from "../models/comicSeriesFolders.js";
 import { insertComicBookSeriesMappingIntoDb } from "../models/comicBookSeriesMapping.js";
 import { insertComicBookMetadataIntoDb } from "../models/comicBookMetadata.js";
-import {
-  insertComicBookRolesIntoDb,
-  checkRoleInDB,
-  getComicBookRolesId,
-} from "../models/comicBookRoles.js";
+import { insertComicBookRolesIntoDb } from "../models/comicBookRoles.js";
 import { insertComicBookMetadataRolesIntoDb } from "../models/comicBookMetadataRoles.js";
+import { insertComicPublisherIntoDb } from "../models/comicPublisher.js";
 
 /**
- * Service function to check if the DATA_DIR environment variable is set.
+ * Checks if the DATA_DIR environment variable is set.
  * @returns {void}
- * @throws {Error} - An error if the DATA_DIR environment variable is not set.
+ * @throws {error} - An error if the DATA_DIR environment variable is not set.
  */
 const ensureDataDirIsInPlace = () => {
   const dataDir = process.env.DATA_DIR;
@@ -58,10 +43,10 @@ const ensureDataDirIsInPlace = () => {
 };
 
 /**
- * Service function to get the files in the data directory.
- * @returns {Array} - An array of file paths.
- * @throws {Error} - An error if there is an issue reading the files in the data directory.
- * @throws {Error} - An error if no files are found in the data directory.
+ * Gets all the files in the data directory.
+ * @returns {string[]} - An array of file paths.
+ * @throws {error} - An error if there is an issue reading the files in the data directory.
+ * @throws {error} - An error if no files are found in the data directory.
  */
 const getTheFilesInOurDataDir = () => {
   // We assume that the data directory is set in the environment variables.
@@ -80,6 +65,10 @@ const getTheFilesInOurDataDir = () => {
   return filesList;
 };
 
+/**
+ * Service function to get the comic book files in the data directory.
+ * @returns {string[]} - An array of comic book file paths.
+ */
 const getTheComicBookFilesInOurDataDir = () => {
   const filesList = getTheFilesInOurDataDir();
 
@@ -97,11 +86,11 @@ const getTheComicBookFilesInOurDataDir = () => {
 };
 
 /**
- * Service function to gather the initial properties of a comic book file.
- * @param {String} filePath - The file path of the comic book file.
- * @returns {Object} - An object containing the file name, parent directory, and file hash.
- * @throws {Error} - An error if there is an issue extracting the file name and parent directory from the file path.
- * @throws {Error} - An error if there is an issue generating the file hash.
+ * Gathers the initial properties of a comic book file.
+ * @param {string} filePath - The file path of the comic book file.
+ * @returns {{fileName: string, parentDir: string, fileHash: string}} - An object containing the file name, parent directory, and file hash.
+ * @throws {error} If there is an issue extracting the file name or parent directory from the file path.
+ * @throws {error} If there is an issue generating the file hash.
  */
 const gatherInitialComicBookFileProperties = (filePath) => {
   // Extract the file name and the parent directory of the file.
@@ -123,626 +112,316 @@ const gatherInitialComicBookFileProperties = (filePath) => {
   return { fileName: fileName, filePath: filePath, fileHash: fileHash };
 };
 
+/**
+ * Gets the parent folder from a file path.
+ * @param {string} filePath
+ * @returns {string} - The parent directory of the file.
+ */
 const getParentFolderFromFilePath = (filePath) => {
   const { parentDir } = getfileNameAndParentDirFromPath(filePath);
   return parentDir;
 };
 
 /**
- * Service function to check if the current comic book exists in the database.
- * @param {String} fileHash - The hash of the comic book file.
- * @returns {Object} - An object containing a boolean indicating if the comic book exists in the database and the comic book id.
- * @throws {Error} - An error if there is an issue querying the database for the comic book.
- */
-const checkIfCurrentComicBookExistsInDatabase = async (fileHash) => {
-  try {
-    let comicBookResultsArray = await getComicBookByHash(fileHash);
-
-    if (comicBookResultsArray.length > 0) {
-      return {
-        comicBookExists: true,
-        comicBookId: comicBookResultsArray[0].id,
-      };
-    } else {
-      return { comicBookExists: false, comicBookId: null };
-    }
-  } catch (err) {
-    throw new Error(
-      "Error querying the database for the comic book: " + fileHash
-    );
-  }
-};
-
-/**
- * Service function to add the comic book file to the database, when the comic book does not already exist in the database.
- * @param {Object} fileInfo - An object containing the file name, parent directory, and file hash.
- * @returns {Promise} - A promise that resolves to the comic book id as an integer.
- * @throws {Error} - An error if there is an issue inserting the comic book into the database.
- * @throws {Error} - An error if the comic book id is not an integer.
- * @throws {Error} - An error if the comic book id is null.
+ * Adds the comic book file to the database.
+ * @param {{fileName: String, fileHash: String, filePath: String}} fileInfo - An object containing the file name, parent directory, and file hash.
+ * @returns {Promise<number>} - A promise that resolves to the comic book id as an integer.
+ * @throws {error} - An error if there is an issue inserting the comic book into the database.
+ * @throws {error} - An error if the comic book id is not an integer.
+ * @throws {error} - An error if the comic book id is null.
  */
 const addTheComicBookFileToDatabase = async (fileInfo) => {
-  let comicBookId = null;
-  let insertComicBookResult = null;
-
   try {
-    insertComicBookResult = await insertComicBookIntoDb(fileInfo);
+    const insertComicBookResult = await insertComicBookIntoDb(fileInfo);
+
+    // Ensure the result is valid and is an integer
+    const comicBookId = Number.parseInt(insertComicBookResult, 10);
+    if (!Number.isInteger(comicBookId)) {
+      throw new Error(
+        `Returned comic book ID is not an integer: ${insertComicBookResult}`
+      );
+    }
+
+    return comicBookId;
   } catch (err) {
-    logger.error(
-      "Error inserting comic book at " + fileInfo.filePath + " :",
-      err
-    );
-    throw new Error(
-      "Error inserting comic book at " + fileInfo.filePath + " :",
-      err
-    );
+    logger.error(`Error inserting comic book at ${fileInfo.filePath}:`, err);
+    throw new Error(`Failed to insert comic book at ${fileInfo.filePath}`);
   }
-
-  if (insertComicBookResult?.success) {
-    comicBookId = insertComicBookResult.comicBookId;
-
-    logger.debug(
-      `Inserted file ${fileInfo.fileName} into comic_book table, with the id ${fileInfo.comicBookId}`
-    );
-  }
-
-  // check that the comic book id is not null.
-  if (!comicBookId) {
-    throw new Error("Error inserting comic book at " + fileInfo.filePath);
-  }
-
-  // check if the comic book id is an integer.
-  if (!Number.isInteger(comicBookId)) {
-    throw new Error("Error retured comic book id is not an integer.");
-  }
-
-  return Promise.resolve(Number.parseInt(comicBookId));
 };
 
 /**
- * Service function to get the comic book comic info xml data if it exists.
- * @param {String} filePath - The file path of the comic book file.
- * @returns {Object} - An object containing the comic book metadata.
+ * Gets and parses the comic book comic info xml data if it exists.
+ * @param {string} filePath - The file path of the comic book file.
+ * @returns {Promise<object|null>} - An object containing the comic book xml metadata.
  * @returns {null} - If the comic book does not have a comic info xml file.
- * @throws {Error} - An error if there is an issue parsing the comic info xml.
- * @throws {Error} - An error if there is an issue converting the comic info xml text to json.
- * @throws {Error} - An error if there is an issue extracting the comic info xml from the comic book file.
+ * @throws {error} - An error if there is an issue parsing the comic info xml.
+ * @throws {error} - An error if there is an issue converting the comic info xml text to json.
+ * @throws {error} - An error if there is an issue extracting the comic info xml from the comic book file.
  */
 const getComicBookComicInfoXmlData = async (filePath) => {
-  const doesTheComicBookHaveComicInfoXml = hasComicInfoXml(filePath);
-
-  if (!doesTheComicBookHaveComicInfoXml) {
+  if (!hasComicInfoXml(filePath)) {
     return null;
   }
 
-  let parsedComicInfoXml = null;
   try {
-    // first we read the raw xml data from the comic book file.
+    // Read, convert, and parse the XML data in sequence
     const rawComicInfoXml = extractComicInfoXml(filePath);
-    // then we convert the raw xml data to json.
     const jsonComicInfoXml = await convertComicInfoXmlTextToJson(
       rawComicInfoXml
     );
-    // then we parse the json data to extract the metadata and ensure it is in the correct format.
-    parsedComicInfoXml = await parseComicInfoXmlForMetadata(jsonComicInfoXml);
+    return await parseComicInfoXmlForMetadata(jsonComicInfoXml);
   } catch (err) {
-    logger.error("Error parsing comic info xml:", err);
+    logger.error(`Error parsing comic info XML for file: ${filePath}`, err);
+    return null;
   }
-
-  return parsedComicInfoXml;
 };
 
 /**
- * Service function to add the comic book metadata to the database.
- * @param {Number} comicBookId - The id of the comic book in the database.
- * @param {Object} comicFileXmlData - The comic book metadata.
- * @returns {Promise} - A promise that resolves to the result of the database insert.
+ * Adds the comic book metadata to the database.
+ * @param {number} comicBookId - The id of the comic book in the database.
+ * @param {object} comicFileXmlData - The comic book metadata.
+ * @returns {Promise<number|null>} - A promise that resolves to the result of the database insert.
  */
 const addComicBookMetadataToDatabase = async (
   comicBookId,
   comicFileXmlData
 ) => {
-  let insertMetadataResult = null;
-
   try {
-    insertMetadataResult = await insertComicBookMetadataIntoDb({
+    const insertMetadataResult = await insertComicBookMetadataIntoDb({
       comicBookId,
-      seriesName: comicFileXmlData.seriesName,
-      title: comicFileXmlData.title,
-      issueNumber: comicFileXmlData.issueNumber,
-      count: comicFileXmlData.count,
-      volume: comicFileXmlData.volume,
-      altSeriesName: comicFileXmlData.altSeriesName,
-      altIssueNumber: comicFileXmlData.altIssueNumber,
-      altCount: comicFileXmlData.altCount,
-      summary: comicFileXmlData.summary,
-      notes: comicFileXmlData.notes,
-      publicationDate: comicFileXmlData.publicationDate,
-      web: comicFileXmlData.web,
-      pageCount: comicFileXmlData.pageCount,
-      format: comicFileXmlData.format,
-      scanInformation: comicFileXmlData.scanInformation,
-      rating: comicFileXmlData.rating,
-      mainCharacterOrTeam: comicFileXmlData.mainCharacterOrTeam,
-      review: comicFileXmlData.review,
+      ...comicFileXmlData,
     });
+
+    if (insertMetadataResult?.success) {
+      logger.debug(
+        `Inserted metadata for comic book ${comicBookId} into comic_book_metadata table.`
+      );
+    }
+
+    return insertMetadataResult?.id || null;
   } catch (err) {
-    logger.error("Error inserting metadata:", err);
-  }
-
-  if (insertMetadataResult?.success) {
-    logger.debug(
-      `Inserted metadata for comic book ${comicBookId} into comic_book_metadata table.`
+    logger.error(
+      `Error inserting metadata for comic book ${comicBookId}:`,
+      err
     );
+    return null;
   }
-
-  return Promise.resolve(insertMetadataResult?.id);
 };
 
 /**
- * Service function to add the comic book roles to the database.
- * @param {Obbject} comicFileXmlData - The comic book metadata.
- * @returns {Promise} - A promise that resolves to an array of the comic book roles ids in the database.
+ * Adds comic book roles (e.g., writer, penciller) to the database.
+ * @param {object} comicFileXmlData - The comic book metadata.
+ * @returns {Promise<number[]>} - A promise that resolves to an array of comic book role IDs.
  */
 const addComicBookRolesToDatabase = async (comicFileXmlData) => {
-  if (!comicFileXmlData) {
-    return;
-  }
+  if (!comicFileXmlData) return [];
 
-  let rolesIds = [];
+  const rolesToProcess = [
+    { key: "writer", dbKey: "writer" },
+    { key: "penciller", dbKey: "penciller" },
+    { key: "inker", dbKey: "inker" },
+    { key: "colorist", dbKey: "colorist" },
+    { key: "letterer", dbKey: "letterer" },
+    { key: "coverArtist", dbKey: "cover_artist" },
+    { key: "editor", dbKey: "editor" },
+  ];
 
-  if (comicFileXmlData.writer) {
-    let writers = comicFileXmlData.writer.split(",");
-    writers = writers.map((writer) => {
-      return writer.trim();
-    });
+  const rolesIds = [];
 
-    for (const writer of writers) {
-      let roleIsAlreadyInDb = await checkRoleInDB("writer", writer);
+  for (const { key, dbKey } of rolesToProcess) {
+    const roleData = comicFileXmlData[key];
 
-      if (!roleIsAlreadyInDb) {
-        let writerInsertionResult = null;
+    if (roleData) {
+      const roleNames = roleData.split(",").map((name) => name.trim());
+
+      for (const roleName of roleNames) {
         try {
-          writerInsertionResult = await insertComicBookRolesIntoDb({
-            writer: writer,
+          const insertionResult = await insertComicBookRolesIntoDb({
+            [dbKey]: roleName,
           });
-        } catch (err) {
-          logger.error("Error inserting writer:", err);
-        }
 
-        if (writerInsertionResult?.success) {
-          rolesIds.push(writerInsertionResult.comicBookRolesId);
+          if (insertionResult?.success) {
+            rolesIds.push(insertionResult.comicBookRolesId);
+          }
+        } catch (err) {
+          logger.error(`Error processing ${dbKey}: ${roleName}`, err);
         }
-      } else {
-        let writerId = await getComicBookRolesId("writer", writer);
-        rolesIds.push(writerId);
       }
     }
   }
 
-  if (comicFileXmlData.penciller) {
-    let pencillers = comicFileXmlData.penciller.split(",");
-    pencillers = pencillers.map((penciller) => {
-      return penciller.trim();
-    });
-
-    for (const penciller of pencillers) {
-      let roleIsAlreadyInDb = await checkRoleInDB("penciller", penciller);
-
-      if (!roleIsAlreadyInDb) {
-        let pencillerInsertionResult = null;
-        try {
-          pencillerInsertionResult = await insertComicBookRolesIntoDb({
-            penciller: penciller,
-          });
-        } catch (err) {
-          logger.error("Error inserting penciller:", err);
-        }
-
-        if (pencillerInsertionResult?.success) {
-          rolesIds.push(pencillerInsertionResult.comicBookRolesId);
-        }
-      } else {
-        let pencillerId = await getComicBookRolesId("penciller", penciller);
-        rolesIds.push(pencillerId);
-      }
-    }
-  }
-
-  if (comicFileXmlData.inker) {
-    let inkers = comicFileXmlData.inker.split(",");
-    inkers = inkers.map((inker) => {
-      return inker.trim();
-    });
-
-    for (const inker of inkers) {
-      let roleIsAlreadyInDb = await checkRoleInDB("inker", inker);
-
-      if (!roleIsAlreadyInDb) {
-        let inkerInsertionResult = null;
-        try {
-          inkerInsertionResult = await insertComicBookRolesIntoDb({
-            inker: inker,
-          });
-        } catch (err) {
-          logger.error("Error inserting inker:", err);
-        }
-
-        if (inkerInsertionResult?.success) {
-          rolesIds.push(inkerInsertionResult.comicBookRolesId);
-        }
-      } else {
-        let inkerId = await getComicBookRolesId("inker", inker);
-        rolesIds.push(inkerId);
-      }
-    }
-  }
-
-  if (comicFileXmlData.colorist) {
-    let colorists = comicFileXmlData.colorist.split(",");
-    colorists = colorists.map((colorist) => {
-      return colorist.trim();
-    });
-
-    for (const colorist of colorists) {
-      let roleIsAlreadyInDb = await checkRoleInDB("colorist", colorist);
-
-      if (!roleIsAlreadyInDb) {
-        let coloristInsertionResult = null;
-        try {
-          coloristInsertionResult = await insertComicBookRolesIntoDb({
-            colorist: colorist,
-          });
-        } catch (err) {
-          logger.error("Error inserting colorist:", err);
-        }
-
-        if (coloristInsertionResult?.success) {
-          rolesIds.push(coloristInsertionResult.comicBookRolesId);
-        }
-      } else {
-        let coloristId = await getComicBookRolesId("colorist", colorist);
-        rolesIds.push(coloristId);
-      }
-    }
-  }
-
-  if (comicFileXmlData.letterer) {
-    let letterers = comicFileXmlData.letterer.split(",");
-    letterers = letterers.map((letterer) => {
-      return letterer.trim();
-    });
-
-    for (const letterer of letterers) {
-      let roleIsAlreadyInDb = await checkRoleInDB("letterer", letterer);
-
-      if (!roleIsAlreadyInDb) {
-        let lettererInsertionResult = null;
-        try {
-          lettererInsertionResult = await insertComicBookRolesIntoDb({
-            letterer: letterer,
-          });
-        } catch (err) {
-          logger.error("Error inserting letterer:", err);
-        }
-
-        if (lettererInsertionResult?.success) {
-          rolesIds.push(lettererInsertionResult.comicBookRolesId);
-        }
-      } else {
-        let lettererId = await getComicBookRolesId("letterer", letterer);
-        rolesIds.push(lettererId);
-      }
-    }
-  }
-
-  if (comicFileXmlData.coverArtist) {
-    let coverArtists = comicFileXmlData.coverArtist.split(",");
-    coverArtists = coverArtists.map((coverArtist) => {
-      return coverArtist.trim();
-    });
-
-    for (const coverArtist of coverArtists) {
-      let roleIsAlreadyInDb = await checkRoleInDB("cover_artist", coverArtist);
-
-      if (!roleIsAlreadyInDb) {
-        let coverArtistInsertionResult = null;
-        try {
-          coverArtistInsertionResult = await insertComicBookRolesIntoDb({
-            cover_artist: coverArtist,
-          });
-        } catch (err) {
-          logger.error("Error inserting cover artist:", err);
-        }
-
-        if (coverArtistInsertionResult?.success) {
-          rolesIds.push(coverArtistInsertionResult.comicBookRolesId);
-        }
-      } else {
-        let coverArtistId = await getComicBookRolesId(
-          "cover_artist",
-          coverArtist
-        );
-        rolesIds.push(coverArtistId);
-      }
-    }
-  }
-
-  if (comicFileXmlData.editor) {
-    let editors = comicFileXmlData.editor.split(",");
-    editors = editors.map((editor) => {
-      return editor.trim();
-    });
-
-    for (const editor of editors) {
-      let roleIsAlreadyInDb = await checkRoleInDB("editor", editor);
-
-      if (!roleIsAlreadyInDb) {
-        let editorInsertionResult = null;
-        try {
-          editorInsertionResult = await insertComicBookRolesIntoDb({
-            editor: editor,
-          });
-        } catch (err) {
-          logger.error("Error inserting editor:", err);
-        }
-
-        if (editorInsertionResult?.success) {
-          rolesIds.push(editorInsertionResult.comicBookRolesId);
-        }
-      } else {
-        let editorId = await getComicBookRolesId("editor", editor);
-        rolesIds.push(editorId);
-      }
-    }
-  }
-
-  return Promise.resolve(rolesIds);
+  return rolesIds;
 };
 
 /**
- * Service function to add the relationship between a comic book's metadata and its roles.
- * @param {Number} metadataId - The id of the comic book metadata in the database.
- * @param {Array} rolesIds - An array of the comic book roles ids in the database.
- * @returns {Promise} - A promise that resolves to the result of the database insert.
+ * Adds the relationship between a comic book's metadata and its roles to the database.
+ * @param {number} metadataId - The ID of the comic book metadata in the database.
+ * @param {number[]} rolesIds - An array of the comic book role IDs in the database.
+ * @returns {Promise<number[]>} - A promise that resolves to an array of metadata role IDs.
  */
 const addComicBookMetadataRolesToDatabase = async (metadataId, rolesIds) => {
-  let metadataRolesIds = [];
+  const metadataRolesIds = [];
 
   for (const roleId of rolesIds) {
-    let insertMetadataRolesResult = null;
     try {
-      insertMetadataRolesResult = await insertComicBookMetadataRolesIntoDb({
-        metadataId,
-        roleId,
-      });
+      const insertMetadataRolesResult =
+        await insertComicBookMetadataRolesIntoDb({
+          metadataId,
+          roleId,
+        });
+
+      if (insertMetadataRolesResult?.success) {
+        logger.debug(
+          `Inserted metadata role for metadata ID ${metadataId} and role ID ${roleId} into comic_book_metadata_roles table.`
+        );
+        metadataRolesIds.push(insertMetadataRolesResult.id);
+      }
     } catch (err) {
-      logger.error("Error inserting metadata roles:", err);
-    }
-
-    if (insertMetadataRolesResult?.success) {
-      logger.debug(
-        `Inserted metadata roles for comic book metadata ${metadataId} into comic_book_metadata_roles table.`
+      logger.error(
+        `Error inserting metadata role for metadata ID ${metadataId} and role ID ${roleId}:`,
+        err
       );
-      metadataRolesIds.push(insertMetadataRolesResult.id);
     }
   }
 
-  return Promise.resolve(metadataRolesIds);
+  return metadataRolesIds;
 };
 
 /**
- * Service function to check if the comic folder already exists in the database.
- * @param {String} comicFolderDir - The directory of the comic folder.
- * @returns {Promise(Bool)} - A boolean indicating if the comic folder exists in the database.
+ * Adds the comic publisher to the database.
+ * @param {string} publisherName - The name of the comic publisher.
+ * @returns {Promise<number|null>} - The ID of the comic publisher in the database, or null if unsuccessful.
  */
-const checkIfComicFolderExistsInDatabase = async (comicFilePath) => {
-  const comicFolderDir = getParentFolderFromFilePath(comicFilePath);
-
-  // Generate a hash for the folder, this hash will be used to check if the folder already exists in the database.
-  const folderHash = generateFolderHash(comicFolderDir);
-
-  let comicFolderId = null;
-  let findComicFolderResult = null;
-
+const addComicPublisherToDatabase = async (publisherName) => {
   try {
-    findComicFolderResult = await getComicFolderUsingHash(folderHash);
-    comicFolderId = findComicFolderResult?.id;
-  } catch (err) {
-    logger.error("Error getting comic folder by hash:", err);
-  }
-
-  if (comicFolderId) {
-    logger.debug(
-      `Comic folder ${comicFolderDir} already exists in the database.`
+    const insertPublisherResult = await insertComicPublisherIntoDb(
+      publisherName
     );
-    return Promise.resolve(true);
+
+    if (insertPublisherResult?.success) {
+      const publisherId = Number.parseInt(
+        insertPublisherResult.publisherId,
+        10
+      );
+      logger.debug(
+        `Inserted publisher "${publisherName}" into comic_publisher table with ID: ${publisherId}`
+      );
+      return publisherId;
+    }
+  } catch (err) {
+    logger.error(`Error inserting publisher "${publisherName}":`, err);
   }
 
-  return Promise.resolve(false);
+  return null;
 };
 
 /**
- * Service function to add the comic folder to the database.
- * @param {String} comicFolderDir - The directory of the comic folder.
- * @returns {Promise(Number)} - The id of the comic folder in the database.
- * @returns {Promise(null)} - If the comic folder already exists in the database.
+ * Adds a comic folder to the database.
+ * @param {string} comicFilePath - The file path of the comic.
+ * @returns {Promise<number|null>} - The ID of the comic folder in the database, or null if the folder already exists.
  */
 const addComicFolderToDatabase = async (comicFilePath) => {
   const comicFolderDir = getParentFolderFromFilePath(comicFilePath);
-  // Generate a hash for the folder, this hash will be used to check if the folder already exists in the database.
   const folderHash = generateFolderHash(comicFolderDir);
 
-  let comicFolderId = null;
-  let insertFolderResult = null;
-
   try {
-    insertFolderResult = await insertComicFolderIntoDb({
+    const insertFolderResult = await insertComicFolderIntoDb({
       folderPath: comicFolderDir,
       folderHash,
     });
-  } catch (err) {
-    logger.error("Error inserting folder:", err);
-  }
 
-  if (insertFolderResult?.success) {
-    comicFolderId = insertFolderResult.comicFolderId;
-    if (!comicFolderId) {
-      logger.debug(`Folder ${comicFolderDir} already exists in the database.`);
-    } else {
-      logger.debug(
-        `Inserted folder ${comicFolderDir} into comic_folder table, with the id ${comicFolderId}`
-      );
+    if (insertFolderResult?.success) {
+      const comicFolderId = insertFolderResult.comicFolderId;
+
+      if (comicFolderId) {
+        logger.debug(
+          `Inserted folder "${comicFolderDir}" into comic_folder table with ID: ${comicFolderId}`
+        );
+      } else {
+        logger.debug(
+          `Folder "${comicFolderDir}" already exists in the database.`
+        );
+      }
+
+      return comicFolderId;
     }
-  }
-
-  return comicFolderId;
-};
-
-/**
- * Service function to check if the comic series already exists in the database.
- * @param {String} seriesYear - The year of the comic series.
- * @param {String} seriesName - The name of the comic series.
- * @returns {Promise(Boolean)} - A boolean indicating if the comic series exists in the database.
- */
-const checkIfComicSeriesExistsInDatabase = async (seriesYear, seriesName) => {
-  let seriesId = null;
-  let findSeriesResult = null;
-
-  try {
-    findSeriesResult = await findSeriesIdFromSeriesNameAndYearInDb(
-      seriesName,
-      seriesYear
-    );
-    seriesId = findSeriesResult?.id;
   } catch (err) {
-    logger.error("Error finding series:", err);
+    logger.error(`Error inserting folder "${comicFolderDir}":`, err);
   }
 
-  if (seriesId) {
-    logger.debug(`Comic series ${seriesName} already exists in the database.`);
-    return Promise.resolve(true);
-  }
-
-  return Promise.resolve(false);
+  return null;
 };
 
 /**
- * Service function to add the comic book series to the database.
- * @param {String} seriesYear - The year of the comic book series.
- * @param {String} seriesName - The name of the comic book series.
- * @returns {Promise(Number)} - The id of the comic series in the database.
- * @returns {Promise(null)} - If the comic series already exists in the database.
+ * Adds a comic book series to the database.
+ * @param {string} seriesYear - The year of the comic book series.
+ * @param {string} seriesName - The name of the comic book series.
+ * @returns {Promise<number|null>} - The ID of the comic series in the database, or null if unsuccessful.
  */
 const addSeriesToDatabase = async (seriesYear, seriesName) => {
-  let seriesId = null;
-  let insertSeriesResult = null;
-
   if (!seriesName || !seriesYear) {
-    logger.error(
-      "Error adding series to database: seriesName or seriesYear are null."
-    );
-    return Promise.resolve(null);
+    logger.error("Error adding series: seriesName or seriesYear is missing.");
+    return null;
   }
 
   try {
-    logger.debug(`Inserting series ${seriesName} into comic_series table.`);
-    insertSeriesResult = await insertComicSeriesIntoDb({
+    const { success, comicSeriesId } = await insertComicSeriesIntoDb({
       seriesName,
       seriesYear,
     });
-  } catch (err) {
-    logger.error("Error inserting series:", err);
-  }
 
-  if (insertSeriesResult?.success && insertSeriesResult.comicSeriesId) {
-    seriesId = insertSeriesResult.comicSeriesId;
-    logger.debug(
-      `Inserted series ${seriesName} into comic_series table, with the id ${seriesId}`
+    if (success && comicSeriesId) {
+      logger.debug(
+        `Series "${seriesName}" (Year: ${seriesYear}) added/retrieved with ID: ${comicSeriesId}.`
+      );
+      return comicSeriesId;
+    }
+  } catch (err) {
+    logger.error(
+      `Error adding series "${seriesName}" (Year: ${seriesYear}):`,
+      err
     );
   }
 
-  if (!seriesId) {
-    return Promise.resolve(null);
-  }
-
-  return Promise.resolve(Number.parseInt(seriesId));
+  return null;
 };
 
 /**
- * Service function to check if the comic series folder mapping already exists in the database.
- * @param {Number} seriesId - The id of the comic series.
- * @param {Number} folderId - The id of the comic folder.
- * @returns {Bool} - A boolean indicating if the mapping exists in the database.
- */
-const checkIfComicSeriesFolderMappingExistsInDatabase = async (
-  seriesId,
-  folderId
-) => {
-  let comicSeriesFolderMappingId = null;
-  let findMappingResult = null;
-
-  try {
-    findMappingResult = await findMappingInComicSeriesFolders({
-      seriesId,
-      folderId,
-    });
-
-    comicSeriesFolderMappingId = findMappingResult?.id;
-  } catch (err) {
-    logger.error("Error finding mapping in comic series folders:", err);
-  }
-
-  if (comicSeriesFolderMappingId) {
-    logger.debug(
-      `Mapping for series_id ${seriesId} and folder_id ${folderId} already exists in the database.`
-    );
-    return true;
-  }
-
-  return false;
-};
-
-/**
- * Service function to insert the comic book series folder mapping into the database.
- * @param {Number} seriesId - The id of the comic series.
- * @param {Number} folderId - The id of the comic folder.
- * @returns {Promise(Number)} - The id of the comic series folder mapping in the database.
- * @returns {Promise(null)} - If the comic series folder mapping already exists in the database.
+ * Inserts a comic book series folder mapping into the database.
+ * @param {number} seriesId - The ID of the comic series.
+ * @param {number} folderId - The ID of the comic folder.
+ * @returns {Promise<number|null>} - The ID of the comic series folder mapping in the database, or null if it already exists.
  */
 const insertComicSeriesFolderMappingIntoDb = async (seriesId, folderId) => {
-  let insertMappingResult = null;
-  let comicSeriesFolderMappingId = null;
-
   try {
-    insertMappingResult = await insertMappingIntoComicSeriesFolders({
+    const insertMappingResult = await insertMappingIntoComicSeriesFolders({
       seriesId,
       folderId,
     });
-  } catch (err) {
-    logger.error("Error inserting mapping:", err);
-  }
 
-  if (insertMappingResult?.success) {
-    comicSeriesFolderMappingId = insertMappingResult.mappingId;
-    logger.debug(
-      `Inserted mapping for series_id ${seriesId} and folder_id ${folderId} into comic_series_folders table.`
+    if (insertMappingResult?.success) {
+      const mappingId = parseInt(insertMappingResult.mappingId, 10);
+      logger.debug(
+        `Inserted mapping for series_id ${seriesId} and folder_id ${folderId} into comic_series_folders table with ID: ${mappingId}.`
+      );
+      return mappingId;
+    }
+  } catch (err) {
+    logger.error(
+      `Error inserting mapping for series_id ${seriesId} and folder_id ${folderId}:`,
+      err
     );
   }
 
-  if (!comicSeriesFolderMappingId) {
-    return Promise.resolve(null);
-  }
-
-  return Promise.resolve(parseInt(comicSeriesFolderMappingId));
+  return null;
 };
 
 /**
  * Main function to add comic book files to the database.
- * @returns {Object} - An object containing the total number of files, total number of files added, total number of files skipped, total number of files failed, total number of folders added, total number of series added, and total number of mappings added.
- * @throws {Error} - An error if the DATA_DIR environment variable is not set.
- * @throws {Error} - An error if there is an issue inserting the comic book into the database.
- * @throws {Error} - An error if there is an issue finding the series id from the series name in the database.
+ * @returns {object} - An object containing the total number of files, total number of files added, total number of files skipped, total number of files failed, total number of folders added, total number of series added, and total number of mappings added.
+ * @throws {error} - An error if the DATA_DIR environment variable is not set.
+ * @throws {error} - An error if there is an issue inserting the comic book into the database.
+ * @throws {error} - An error if there is an issue finding the series id from the series name in the database.
  */
 export const addFilesToDatabase = async () => {
   ensureDataDirIsInPlace();
@@ -766,36 +445,15 @@ export const addFilesToDatabase = async () => {
     ********************************************************************************************************************
     */
 
+    const comicFileProperties = gatherInitialComicBookFileProperties(filePath);
+
     // We will need to keep track of the comic book id for future database inserts.
-    let comicBookId = null;
-
-    try {
-      const comicFileProperties =
-        gatherInitialComicBookFileProperties(filePath);
-
-      // Check if the comic book file already exists in the database.
-      let checkIfComicBookExistsResult =
-        await checkIfCurrentComicBookExistsInDatabase(
-          comicFileProperties.fileHash
-        );
-
-      if (checkIfComicBookExistsResult.comicBookExists) {
-        logger.debug(
-          `Comic book file ${comicFileProperties.fileName} already exists in the database.`
-        );
-        serviceLogObject.totalFilesSkipped += 1;
-        continue;
-      }
-
-      comicBookId = await addTheComicBookFileToDatabase(comicFileProperties);
-    } catch (err) {
-      logger.error("Error adding comic book file to database:", err);
-      serviceLogObject.totalFilesFailed += 1;
-      // If the comic book file insertion failed, continue to the next file.
-      continue;
-    }
+    const comicBookId = await addTheComicBookFileToDatabase(
+      comicFileProperties
+    );
 
     if (!comicBookId) {
+      serviceLogObject.totalFilesFailed += 1;
       logger.error(
         "Error adding comic book file to database: comicBookId is null"
       );
@@ -855,6 +513,19 @@ export const addFilesToDatabase = async () => {
 
     /*
     ********************************************************************************************************************
+    Adding the comic publisher to the database. comic_publisher table.
+    ********************************************************************************************************************
+    */
+
+    let comicPublisherId = null;
+    if (comicFileXmlData && comicFileXmlData.publisher) {
+      comicPublisherId = await addComicPublisherToDatabase(
+        comicFileXmlData.publisher
+      );
+    }
+
+    /*
+    ********************************************************************************************************************
     Adding the comic book folder to the database. comic_folder table.
     We will need to keep track of the comic folder to maintain the unique relationship between comic series and comic folders.
 
@@ -864,15 +535,7 @@ export const addFilesToDatabase = async () => {
     ********************************************************************************************************************
     */
 
-    let comicFolderId = null;
-    // Check if the comic folder already exists in the database.
-    const doesComicFolderExist = await checkIfComicFolderExistsInDatabase(
-      filePath
-    );
-
-    if (!doesComicFolderExist) {
-      comicFolderId = await addComicFolderToDatabase(filePath);
-    }
+    let comicFolderId = await addComicFolderToDatabase(filePath);
 
     if (comicFolderId) {
       serviceLogObject.totalFoldersAdded += 1;
@@ -887,57 +550,20 @@ export const addFilesToDatabase = async () => {
     ********************************************************************************************************************
     */
 
-    let comicSeriesId = null;
     const folderPath = getParentFolderFromFilePath(filePath);
     const seriesYear = parseComicFolderNameForYear(folderPath).seriesYear;
+    let seriesName = null;
 
-    // TODO: we need to check if the series already exists in the database.
-    let doesComicSeriesExist = false;
-
-    if (
-      comicFileXmlData &&
-      comicFileXmlData.seriesName &&
-      comicFileXmlData.seriesName[0] &&
-      comicFileXmlData.seriesName[0].length > 0
-    ) {
-      doesComicSeriesExist = await checkIfComicSeriesExistsInDatabase(
-        seriesYear,
-        comicFileXmlData.seriesName[0]
-      );
+    if (comicFileXmlData && comicFileXmlData.seriesName) {
+      seriesName = comicFileXmlData.seriesName;
     } else {
-      const seriesName = parseComicFolderNameForName(folderPath);
-      doesComicSeriesExist = await checkIfComicSeriesExistsInDatabase(
-        seriesYear,
-        seriesName
-      );
+      seriesName = parseComicFolderNameForName(folderPath);
     }
 
-    if (!doesComicSeriesExist) {
-      /*
-        We want to check if we have metadata from the comicinfo.xml file.
-        We also want to ensure it has a valid seriesName as in not null.
-        We also want to check if the seriesName is not an empty string.
+    const comicSeriesId = await addSeriesToDatabase(seriesYear, seriesName);
 
-        If any of the above conditions are not met then we will parse the folder name for the series name.
-      */
-      if (
-        comicFileXmlData &&
-        comicFileXmlData.seriesName &&
-        comicFileXmlData.seriesName[0] &&
-        comicFileXmlData.seriesName[0].length > 0
-      ) {
-        comicSeriesId = await addSeriesToDatabase(
-          seriesYear,
-          comicFileXmlData.seriesName[0]
-        );
-      } else {
-        const seriesName = parseComicFolderNameForName(folderPath);
-        comicSeriesId = await addSeriesToDatabase(seriesYear, seriesName);
-      }
-
-      if (comicSeriesId) {
-        serviceLogObject.totalSeriesAdded += 1;
-      }
+    if (!comicSeriesId) {
+      throw new Error("Failed to retrieve or insert comic series.");
     }
 
     /*
@@ -948,14 +574,7 @@ export const addFilesToDatabase = async () => {
     ********************************************************************************************************************
     */
 
-    // Check if the mapping already exists in the database.
-    const doesComicSeriesFolderMappingExist =
-      await checkIfComicSeriesFolderMappingExistsInDatabase(
-        comicSeriesId,
-        comicFolderId
-      );
-
-    if (!doesComicSeriesFolderMappingExist && comicSeriesId && comicFolderId) {
+    if (comicSeriesId && comicFolderId) {
       const mappingId = await insertComicSeriesFolderMappingIntoDb(
         comicSeriesId,
         comicFolderId
@@ -965,9 +584,22 @@ export const addFilesToDatabase = async () => {
         serviceLogObject.totalMappingsAdded += 1;
       }
     }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book series mapping to the database. comic_book_series_mapping table.
+    ********************************************************************************************************************
+    */
+
+    if (comicSeriesId || comicBookId) {
+      // At this point it we have a comicbookid then we assume the comic book is new and we need to add it to the series.
+      await insertComicBookSeriesMappingIntoDb({
+        comicBookId: comicBookId,
+        seriesId: comicSeriesId,
+      });
+    }
   }
 
   logger.info("Ingestion process complete.");
-  console.log(serviceLogObject);
   return serviceLogObject;
 };
