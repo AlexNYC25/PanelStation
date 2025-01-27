@@ -13,7 +13,7 @@ export const checkAndCreateComicBookMetadataTable = async () => {
   const createTableQuery = `
     CREATE TABLE comic_book_metadata (
       id SERIAL PRIMARY KEY,
-      comic_book_id INTEGER REFERENCES comic_book_file(id),
+      comic_book_id INTEGER REFERENCES comic_book_file(id) UNIQUE,
       series_name VARCHAR(255),
       title VARCHAR(255),
       issue_number VARCHAR(50),
@@ -104,9 +104,30 @@ export const insertComicBookMetadataIntoDb = async (metadata) => {
       scan_information,
       rating,
       main_character_or_team,
-      review
+      review,
+      publisher_id
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+    ON CONFLICT (comic_book_id) DO UPDATE SET
+      series_name = EXCLUDED.series_name,
+      title = EXCLUDED.title,
+      issue_number = EXCLUDED.issue_number,
+      count = EXCLUDED.count,
+      volume = EXCLUDED.volume,
+      alt_series_name = EXCLUDED.alt_series_name,
+      alt_issue_number = EXCLUDED.alt_issue_number,
+      alt_count = EXCLUDED.alt_count,
+      summary = EXCLUDED.summary,
+      notes = EXCLUDED.notes,
+      publication_date = EXCLUDED.publication_date,
+      web = EXCLUDED.web,
+      page_count = EXCLUDED.page_count,
+      format = EXCLUDED.format,
+      scan_information = EXCLUDED.scan_information,
+      rating = EXCLUDED.rating,
+      main_character_or_team = EXCLUDED.main_character_or_team,
+      review = EXCLUDED.review,
+      publisher_id = EXCLUDED.publisher_id
     RETURNING id;
   `;
 
@@ -130,6 +151,7 @@ export const insertComicBookMetadataIntoDb = async (metadata) => {
     metadata.rating,
     metadata.mainCharacterOrTeam,
     metadata.review,
+    metadata.publisherId
   ];
 
   try {

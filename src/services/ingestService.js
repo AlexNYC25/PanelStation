@@ -298,9 +298,9 @@ const addComicPublisherToDatabase = async (publisherName) => {
       publisherName
     );
 
-    if (insertPublisherResult?.success) {
+    if (insertPublisherResult) {
       const publisherId = Number.parseInt(
-        insertPublisherResult.publisherId,
+        insertPublisherResult,
         10
       );
       logger.debug(
@@ -526,6 +526,16 @@ export const addFilesToDatabase = async () => {
 
     /*
     ********************************************************************************************************************
+    Adding the comic book publisher id to the comic_book_metadata table.
+    ********************************************************************************************************************
+    */
+
+    if (comicFileXmlData && comicFileXmlData.publisher && comicBookMetadataId && comicPublisherId) {
+      const metadataResultAfterPublisher = await addComicBookMetadataToDatabase(comicBookId, {...comicFileXmlData, publisherId: comicPublisherId});
+    }
+
+    /*
+    ********************************************************************************************************************
     Adding the comic book folder to the database. comic_folder table.
     We will need to keep track of the comic folder to maintain the unique relationship between comic series and comic folders.
 
@@ -592,7 +602,6 @@ export const addFilesToDatabase = async () => {
     */
 
     if (comicSeriesId || comicBookId) {
-      // At this point it we have a comicbookid then we assume the comic book is new and we need to add it to the series.
       await insertComicBookSeriesMappingIntoDb({
         comicBookId: comicBookId,
         seriesId: comicSeriesId,
