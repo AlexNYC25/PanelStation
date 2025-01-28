@@ -33,7 +33,8 @@ export const checkAndCreateComicBookMetadataTable = async () => {
       main_character_or_team VARCHAR(255),
       review TEXT,
       publisher_id INTEGER REFERENCES comic_publisher(id),
-      format_id INTEGER REFERENCES comic_format(id)
+      format_id INTEGER REFERENCES comic_format(id),
+      language_id INTEGER REFERENCES comic_language(id)
     );
   `;
 
@@ -107,9 +108,10 @@ export const insertComicBookMetadataIntoDb = async (metadata) => {
       main_character_or_team,
       review,
       publisher_id,
-      format_id
+      format_id,
+      language_id
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
     ON CONFLICT (comic_book_id) DO UPDATE SET
       series_name = EXCLUDED.series_name,
       title = EXCLUDED.title,
@@ -130,7 +132,8 @@ export const insertComicBookMetadataIntoDb = async (metadata) => {
       main_character_or_team = EXCLUDED.main_character_or_team,
       review = EXCLUDED.review,
       publisher_id = EXCLUDED.publisher_id,
-      format_id = EXCLUDED.format_id
+      format_id = EXCLUDED.format_id,
+      language_id = EXCLUDED.language_id
     RETURNING id;
   `;
 
@@ -155,7 +158,8 @@ export const insertComicBookMetadataIntoDb = async (metadata) => {
     metadata.mainCharacterOrTeam,
     metadata.review,
     metadata.publisherId,
-    metadata.formatId
+    metadata.formatId,
+    metadata.languageId
   ];
 
   try {
