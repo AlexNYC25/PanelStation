@@ -30,6 +30,7 @@ import { insertComicBookRolesIntoDb } from "../models/comicBookRoles.js";
 import { insertComicBookMetadataRolesIntoDb } from "../models/comicBookMetadataRoles.js";
 import { insertComicPublisherIntoDb } from "../models/comicPublisher.js";
 import { insertComicFormatToDatabase } from "../models/comicFormat.js";
+import { getComicLanguageIdFromCode } from "../models/comicLanguage.js";
 
 /**
  * Checks if the DATA_DIR environment variable is set.
@@ -332,6 +333,15 @@ const addComicFormatToDatabase = async (formatName) => {
   }
 }
 
+const lookupComicLanguageToDatabase = async (languageCode) => {
+  try {
+    const languageId = await getComicLanguageIdFromCode(languageCode);
+    return languageId;
+  } catch (err) {
+    logger.error(`Error looking up language "${languageCode}":`, err);
+  }
+};
+
 /**
  * Adds a comic folder to the database.
  * @param {string} comicFilePath - The file path of the comic.
@@ -570,6 +580,27 @@ export const addFilesToDatabase = async () => {
 
     if (comicFileXmlData && comicFileXmlData.format && comicBookMetadataId && comicFormatId) {
       const metadataResultAfterFormat = await addComicBookMetadataToDatabase(comicBookId, {...comicFileXmlData, formatId: comicFormatId});
+    }
+
+    /*
+    ********************************************************************************************************************
+    Find the comic language id from the comic_language table.
+    ********************************************************************************************************************
+    */
+
+    let comicLanguageId = null;
+    if (comicFileXmlData && comicFileXmlData.language) {
+      comicLanguageId = await lookupComicLanguageToDatabase(comicFileXmlData.language);
+    }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book language id to the comic_metadata table.
+    ********************************************************************************************************************
+    */
+
+    if (comicFileXmlData && comicFileXmlData.language && comicBookMetadataId && comicLanguageId) {
+      const metadataResultAfterLanguage = await addComicBookMetadataToDatabase(comicBookId, {...comicFileXmlData, languageId: comicLanguageId});
     }
 
     /*
