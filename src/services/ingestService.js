@@ -29,6 +29,7 @@ import { insertComicBookMetadataIntoDb } from "../models/comicBookMetadata.js";
 import { insertComicBookRolesIntoDb } from "../models/comicBookRoles.js";
 import { insertComicBookMetadataRolesIntoDb } from "../models/comicBookMetadataRoles.js";
 import { insertComicPublisherIntoDb } from "../models/comicPublisher.js";
+import { insertComicFormatToDatabase } from "../models/comicFormat.js";
 
 /**
  * Checks if the DATA_DIR environment variable is set.
@@ -315,6 +316,22 @@ const addComicPublisherToDatabase = async (publisherName) => {
   return null;
 };
 
+const addComicFormatToDatabase = async (formatName) => {
+  try {
+    const insertFormatResult = await insertComicFormatToDatabase(formatName);
+
+    if (insertFormatResult) {
+      logger.debug(
+        `Inserted format "${formatName}" into comic_format table.`
+      );
+    }
+
+    return insertFormatResult;
+  } catch (err) {
+    logger.error(`Error inserting format "${formatName}":`, err);
+  }
+}
+
 /**
  * Adds a comic folder to the database.
  * @param {string} comicFilePath - The file path of the comic.
@@ -532,6 +549,27 @@ export const addFilesToDatabase = async () => {
 
     if (comicFileXmlData && comicFileXmlData.publisher && comicBookMetadataId && comicPublisherId) {
       const metadataResultAfterPublisher = await addComicBookMetadataToDatabase(comicBookId, {...comicFileXmlData, publisherId: comicPublisherId});
+    }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book format id to the comic_format table.
+    ********************************************************************************************************************
+    */
+
+    let comicFormatId = null;
+    if (comicFileXmlData && comicFileXmlData.format) {
+      comicFormatId = await addComicFormatToDatabase(comicFileXmlData.format);
+    }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book format id to the comic_metadata table.
+    ********************************************************************************************************************
+    */
+
+    if (comicFileXmlData && comicFileXmlData.format && comicBookMetadataId && comicFormatId) {
+      const metadataResultAfterFormat = await addComicBookMetadataToDatabase(comicBookId, {...comicFileXmlData, formatId: comicFormatId});
     }
 
     /*
