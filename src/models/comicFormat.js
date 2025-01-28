@@ -45,3 +45,20 @@ export const deleteComicFormatTable = async () => {
     logger.error("Error deleting comic_format table:", err);
   }
 };
+
+export const insertComicFormatToDatabase = async (formatName) => {
+  const query = `
+    INSERT INTO comic_format (name)
+    VALUES ($1)
+    ON CONFLICT (name) DO NOTHING
+    RETURNING id;
+  `;
+
+  try {
+    const result = await runQuery(query, [formatName]);
+    logger.debug(`Comic format ${formatName} added to database.`);
+    return result[0].id;
+  } catch (err) {
+    logger.error(`Error adding comic format ${formatName} to database:`, err);
+  }
+}
