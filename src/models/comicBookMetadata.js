@@ -35,7 +35,8 @@ export const checkAndCreateComicBookMetadataTable = async () => {
       publisher_id INTEGER REFERENCES comic_publisher(id),
       format_id INTEGER REFERENCES comic_format(id),
       language_id INTEGER REFERENCES comic_language(id),
-      manga_settings_id INTEGER REFERENCES comic_manga_settings(id)
+      manga_settings_id INTEGER REFERENCES comic_manga_settings(id),
+      comic_imprint_id INTEGER REFERENCES comic_imprint(id)
     );
   `;
 
@@ -111,9 +112,10 @@ export const insertComicBookMetadataIntoDb = async (metadata) => {
       publisher_id,
       format_id,
       language_id,
-      manga_settings_id
+      manga_settings_id,
+      comic_imprint_id
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
     ON CONFLICT (comic_book_id) DO UPDATE SET
       series_name = EXCLUDED.series_name,
       title = EXCLUDED.title,
@@ -136,7 +138,8 @@ export const insertComicBookMetadataIntoDb = async (metadata) => {
       publisher_id = EXCLUDED.publisher_id,
       format_id = EXCLUDED.format_id,
       language_id = EXCLUDED.language_id,
-      manga_settings_id = EXCLUDED.manga_settings_id
+      manga_settings_id = EXCLUDED.manga_settings_id,
+      comic_imprint_id = EXCLUDED.comic_imprint_id
     RETURNING id;
   `;
 
@@ -163,7 +166,8 @@ export const insertComicBookMetadataIntoDb = async (metadata) => {
     metadata.publisherId,
     metadata.formatId,
     metadata.languageId,
-    metadata.mangaSettingsId
+    metadata.mangaSettingsId,
+    metadata.comicImprintId
   ];
 
   try {
