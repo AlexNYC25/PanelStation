@@ -61,6 +61,8 @@ const initializeDatabase = async () => {
   await checkAndCreateComicSeriesGroupTable();
   // comic_genre
   await checkAndCreateComicGenreTable();
+  // comic_manga_settings
+  await checkAndCreateComicMangaSettingsTable();
   // comic_book_metadata
   await checkAndCreateComicBookMetadataTable();
   // comic_characters
@@ -69,8 +71,6 @@ const initializeDatabase = async () => {
   await checkAndCreateComicCountryTable();
   // comic_locations
   await checkAndCreateComicLocationsTable();
-  // comic_manga_settings
-  await checkAndCreateComicMangaSettingsTable();
   // comic_ratings
   await checkAndCreateComicRatingsTable();
   // comic_series_story_arc
