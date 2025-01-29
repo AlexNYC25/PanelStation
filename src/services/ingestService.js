@@ -31,6 +31,7 @@ import { insertComicBookMetadataRolesIntoDb } from "../models/comicBookMetadataR
 import { insertComicPublisherIntoDb } from "../models/comicPublisher.js";
 import { insertComicFormatToDatabase } from "../models/comicFormat.js";
 import { getComicLanguageIdFromCode } from "../models/comicLanguage.js";
+import { getComicMangaSettingsId } from "../models/comicMangaSettings.js";
 
 /**
  * Checks if the DATA_DIR environment variable is set.
@@ -342,6 +343,15 @@ const lookupComicLanguageToDatabase = async (languageCode) => {
   }
 };
 
+const lookupComicMangaSettingsToDatabase = async (mangaSetting) => {
+  try {
+    const mangaSettingId = await getComicMangaSettingsId(mangaSetting);
+    return mangaSettingId;
+  } catch (err) {
+    logger.error(`Error looking up manga setting "${mangaSetting}":`, err);
+  }
+}
+
 /**
  * Adds a comic folder to the database.
  * @param {string} comicFilePath - The file path of the comic.
@@ -602,6 +612,23 @@ export const addFilesToDatabase = async () => {
     if (comicFileXmlData && comicFileXmlData.language && comicBookMetadataId && comicLanguageId) {
       const metadataResultAfterLanguage = await addComicBookMetadataToDatabase(comicBookId, {...comicFileXmlData, languageId: comicLanguageId});
     }
+  
+    /*
+    ********************************************************************************************************************
+    Find the comic manga settings id from the comic_manga_settings table.
+    ********************************************************************************************************************
+    */
+
+    let comicMangaSettingsId = null;
+    if (comicFileXmlData && comicFileXmlData.manga) {
+      comicMangaSettingsId = await lookupComicMangaSettingsToDatabase(comicFileXmlData.manga);
+    }
+
+    if(comicFileXmlData && comicFileXmlData.manga && comicBookMetadataId && comicMangaSettingsId) {
+      const metadataResultAfterManga = await addComicBookMetadataToDatabase(comicBookId, {...comicFileXmlData, mangaSettingsId: comicMangaSettingsId});
+    }
+
+
 
     /*
     ********************************************************************************************************************
