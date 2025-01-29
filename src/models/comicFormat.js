@@ -47,17 +47,28 @@ export const deleteComicFormatTable = async () => {
 };
 
 export const insertComicFormatToDatabase = async (formatName) => {
-  const query = `
+  const insertQuery = `
     INSERT INTO comic_format (name)
     VALUES ($1)
     ON CONFLICT (name) DO NOTHING
     RETURNING id;
   `;
 
+  const selectQuery = `
+    SELECT id FROM comic_format
+    WHERE name = $1;
+  `;
+
   try {
-    const result = await runQuery(query, [formatName]);
+    const insertResult = await runQuery(insertQuery, [formatName]);
     logger.debug(`Comic format ${formatName} added to database.`);
-    return result[0].id;
+
+    if (insertResult.length > 0) {
+      return insertResult[0].id;
+    }
+
+    const selectResult = await runQuery(selectQuery, [formatName]);
+    return selectResult[0]?.id;
   } catch (err) {
     logger.error(`Error adding comic format ${formatName} to database:`, err);
   }
