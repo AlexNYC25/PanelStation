@@ -19,6 +19,14 @@ export const checkAndCreateComicMangaSettingsTable = async () => {
     );
   `;
 
+  const insertDefaultSettingsQuery = `
+    INSERT INTO comic_manga_settings (name, value) VALUES
+    ('Unkown', 'Unknown'),
+    ('No', 'No'),
+    ('Yes', 'Yes'),
+    ('YesAndRightToLeft', 'Yes, Right to Left');
+  `;
+
   try {
     const result = await runQuery(checkTableQuery);
     const tableExists = result[0].exists;
@@ -26,6 +34,10 @@ export const checkAndCreateComicMangaSettingsTable = async () => {
     if (!tableExists) {
       await runQuery(createTableQuery);
       logger.debug("comic_manga_settings table created successfully.");
+
+      await runQuery(insertDefaultSettingsQuery);
+      logger.debug("Default settings inserted successfully.");
+
     } else {
       logger.debug("comic_manga_settings table already exists.");
     }
@@ -49,3 +61,18 @@ export const deleteComicMangaSettingsTable = async () => {
     logger.error("Error deleting comic_manga_settings table:", err);
   }
 };
+
+export const getComicMangaSettingsId = async (name) => {
+  const query = `
+    SELECT id
+    FROM comic_manga_settings
+    WHERE name = $1;
+  `;
+
+  try {
+    const result = await runQuery(query, [name]);
+    return result[0].id;
+  } catch (err) {
+    logger.error("Error getting comic_manga_settings id:", err);
+  }
+}
