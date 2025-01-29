@@ -45,3 +45,34 @@ export const deleteComicImprintTable = async () => {
     logger.error("Error deleting comic_imprint table:", err);
   }
 };
+
+export const insertComicImprintIntoDB = async (name) => {
+  const insertQuery = `
+        INSERT INTO comic_imprint (name) VALUES ($1)
+        ON CONFLICT (name) DO NOTHING
+        RETURNING id;
+    `;
+
+  const selectQuery = `
+        SELECT id FROM comic_imprint WHERE name = $1;
+    `;
+
+  try {
+    const insertResult = await runQuery(selectQuery, [name]);
+    if (insertResult.length > 0) {
+      logger.debug(`Comic imprint ${name} inserted successfully.`);
+      return insertResult[0].id;
+    }
+
+    const selectResult = await runQuery(insertQuery, [name]);
+    if (selectResult.length > 0) {
+      logger.debug(`Comic imprint ${name} inserted successfully.`);
+      return selectResult[0].id;
+    }
+
+    logger.error(`Error inserting comic imprint ${name}.`);
+    
+  } catch (err) {
+    logger.error(`Error inserting comic imprint ${name}:`, err);
+  }
+}
