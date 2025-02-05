@@ -32,6 +32,7 @@ import { insertComicPublisherIntoDb } from "../models/comicPublisher.js";
 import { insertComicFormatToDatabase } from "../models/comicFormat.js";
 import { getComicLanguageIdFromCode } from "../models/comicLanguage.js";
 import { getComicMangaSettingsId } from "../models/comicMangaSettings.js";
+import { insertComicImprintIntoDB } from "../models/comicImprint.js";
 
 /**
  * Checks if the DATA_DIR environment variable is set.
@@ -318,6 +319,24 @@ const addComicPublisherToDatabase = async (publisherName) => {
   return null;
 };
 
+const addComicImprintToDatabase = async (imprintName) => {
+  try {
+    const insertImprintResult = await insertComicImprintIntoDB(imprintName);
+
+    if (insertImprintResult) {
+      const imprintId = Number.parseInt(insertImprintResult, 10);
+      logger.debug(
+        `Inserted imprint "${imprintName}" into comic_imprint table with ID: ${imprintId}`
+      );
+      return imprintId;
+    }
+  } catch (err) {
+    logger.error(`Error inserting imprint "${imprintName}":`, err);
+  }
+
+  return null;
+};
+
 const addComicFormatToDatabase = async (formatName) => {
   try {
     const insertFormatResult = await insertComicFormatToDatabase(formatName);
@@ -563,12 +582,13 @@ export const addFilesToDatabase = async () => {
 
     /*
     ********************************************************************************************************************
-    Adding the comic book publisher id to the comic_book_metadata table.
+    Adding the comic imprint to the database. comic_imprint table.
     ********************************************************************************************************************
     */
 
-    if (comicFileXmlData && comicFileXmlData.publisher && comicBookMetadataId && comicPublisherId) {
-      const metadataResultAfterPublisher = await addComicBookMetadataToDatabase(comicBookId, {...comicFileXmlData, publisherId: comicPublisherId});
+    let comicImprintId = null;
+    if (comicFileXmlData && comicFileXmlData.imprint) {
+      comicImprintId = await addComicImprintToDatabase(comicFileXmlData.imprint);
     }
 
     /*
@@ -584,16 +604,6 @@ export const addFilesToDatabase = async () => {
 
     /*
     ********************************************************************************************************************
-    Adding the comic book format id to the comic_metadata table.
-    ********************************************************************************************************************
-    */
-
-    if (comicFileXmlData && comicFileXmlData.format && comicBookMetadataId && comicFormatId) {
-      const metadataResultAfterFormat = await addComicBookMetadataToDatabase(comicBookId, {...comicFileXmlData, formatId: comicFormatId});
-    }
-
-    /*
-    ********************************************************************************************************************
     Find the comic language id from the comic_language table.
     ********************************************************************************************************************
     */
@@ -601,16 +611,6 @@ export const addFilesToDatabase = async () => {
     let comicLanguageId = null;
     if (comicFileXmlData && comicFileXmlData.language) {
       comicLanguageId = await lookupComicLanguageToDatabase(comicFileXmlData.language);
-    }
-
-    /*
-    ********************************************************************************************************************
-    Adding the comic book language id to the comic_metadata table.
-    ********************************************************************************************************************
-    */
-
-    if (comicFileXmlData && comicFileXmlData.language && comicBookMetadataId && comicLanguageId) {
-      const metadataResultAfterLanguage = await addComicBookMetadataToDatabase(comicBookId, {...comicFileXmlData, languageId: comicLanguageId});
     }
   
     /*
@@ -624,11 +624,44 @@ export const addFilesToDatabase = async () => {
       comicMangaSettingsId = await lookupComicMangaSettingsToDatabase(comicFileXmlData.manga);
     }
 
-    if(comicFileXmlData && comicFileXmlData.manga && comicBookMetadataId && comicMangaSettingsId) {
-      const metadataResultAfterManga = await addComicBookMetadataToDatabase(comicBookId, {...comicFileXmlData, mangaSettingsId: comicMangaSettingsId});
+    /*
+    ********************************************************************************************************************
+
+    ********************************************************************************************************************
+    */
+
+    const metadataUpdates = {};
+
+    if (comicFileXmlData && comicFileXmlData.language && comicLanguageId) {
+      metadataUpdates.languageId = comicLanguageId;
     }
 
+    if (comicFileXmlData && comicFileXmlData.publisher && comicPublisherId) {
+      metadataUpdates.publisherId = comicPublisherId;
+    }
 
+    if (comicFileXmlData && comicFileXmlData.imprint && comicImprintId) {
+      metadataUpdates.comicImprintId = comicImprintId;
+    }
+
+    if (comicFileXmlData && comicFileXmlData.format && comicFormatId) {
+      metadataUpdates.formatId = comicFormatId;
+    }
+
+    if (comicFileXmlData && comicFileXmlData.manga && comicMangaSettingsId) {
+      metadataUpdates.mangaSettingsId = comicMangaSettingsId;
+    }
+
+    if (comicFileXmlData && comicFileXmlData.imprint && comicImprintId) {
+      metadataUpdates.comicImprintId = comicImprintId;
+    }
+
+    if (Object.keys(metadataUpdates).length > 0 && comicBookMetadataId) {
+      await addComicBookMetadataToDatabase(comicBookId, {
+      ...comicFileXmlData,
+      ...metadataUpdates,
+      });
+    }
 
     /*
     ********************************************************************************************************************
