@@ -122,7 +122,7 @@ export const parseComicInfoXmlForMetadata = async (comicInfoXmlObj) => {
     editor: comicInfo.Editor ? comicInfo.Editor[0] : null, // NOTE: comma-separated array
     publisher: comicInfo.Publisher ? comicInfo.Publisher[0] : null,
     imprint: comicInfo.Imprint ? comicInfo.Imprint[0] : null,
-    genre: comicInfo.Genre ? comicInfo.Genre : null,
+    genre: comicInfo.Genre ? comicInfo.Genre[0] : null, // NOTE: comma-separated array
     web: comicInfo.Web ? comicInfo.Web[0] : null,
     pageCount: isNaN(parseInt(comicInfo.PageCount)) ? null : parseInt(comicInfo.PageCount),
     language: comicInfo.LanguageISO ? comicInfo.LanguageISO[0] : null,
