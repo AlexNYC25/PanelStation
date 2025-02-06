@@ -45,3 +45,30 @@ export const deleteComicSeriesGroupTable = async () => {
     logger.error("Error deleting comic_series_group table:", err);
   }
 };
+
+export const insertComicSeriesGroup = async (name) => {
+  const insertQuery = `
+    INSERT INTO comic_series_group (name)
+    VALUES ($1)
+    RETURNING id;
+  `;
+
+  const selectQuery = `
+    SELECT id
+    FROM comic_series_group
+    WHERE name = $1;
+  `;
+
+  try {
+    const result = await runQuery(selectQuery, [name]);
+
+    if (result.length > 0) {
+      return result[0].id;
+    }
+
+    const insertResult = await runQuery(insertQuery, [name]);
+    return insertResult[0].id;
+  } catch (err) {
+    logger.error("Error inserting comic_series_group:", err);
+  }
+};
