@@ -14,7 +14,7 @@ export const checkAndCreateComicGenreTable = async () => {
     CREATE TABLE comic_genre (
       id SERIAL PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
-      genre_description TEXT
+      UNIQUE(name)
     );
   `;
 
@@ -45,3 +45,34 @@ export const deleteComicGenreTable = async () => {
     logger.error("Error deleting comic_genre table:", err);
   }
 };
+
+export const insertComicGenreIntoDb = async (name) => {
+  const insertQuery = `
+    INSERT INTO comic_genre (name)
+    VALUES ($1)
+    RETURNING id;
+  `;
+
+  const selectQuery = `
+    SELECT id FROM comic_genre WHERE name = $1;
+  `;
+
+  try {
+    const selectResult = await runQuery(selectQuery, [name]);
+
+    if (selectResult.length > 0) {
+      logger.debug(`Genre ${name} already exists in comic_genre table.`);
+      return selectResult[0].id;
+    }
+
+    const insertResult = await runQuery(insertQuery, [name]);
+    
+    if (insertResult.length > 0) {
+      logger.debug(`Inserted genre ${name} into comic_genre table.`);
+      return insertResult[0].id;
+    }
+
+  } catch (err) {
+    logger.error(`Error inserting genre ${name} into comic_genre table:`, err);
+  }
+}
