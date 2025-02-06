@@ -9,6 +9,7 @@ import { deleteComicSeriesFoldersTable } from "../models/comicSeriesFolders.js";
 import { deleteComicPublisherTable } from "../models/comicPublisher.js";
 import { deleteComicImprintTable } from "../models/comicImprint.js";
 import { deleteComicSeriesGroupTable } from "../models/comicSeriesGroup.js";
+import { deleteComicBookMetadataSeriesGroupMappingTable } from "../models/comicBookMetadataSeriesGroupMapping.js";
 import { deleteComicSeriesStoryArcTable } from "../models/comicSeriesStoryArc.js";
 import { deleteComicCharactersTable } from "../models/comicCharacters.js";
 import { deleteComicCountryTable } from "../models/comicCountry.js";
@@ -29,6 +30,8 @@ export const purgeService = async (req, res) => {
         await deleteComicBookMetadataRolesTable();
         // comic_series_folders
         await deleteComicBookSeriesMappingTable();
+        // comic_book_metadata_series_group_mapping
+        await deleteComicBookMetadataSeriesGroupMappingTable();
         
         // Drop the main tables
         // comic_book_metadata

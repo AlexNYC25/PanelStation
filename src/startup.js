@@ -12,6 +12,7 @@ import { checkAndCreateComicBookSeriesMappingTable } from "./models/comicBookSer
 import { checkAndCreateComicPublisherTable } from "./models/comicPublisher.js";
 import { checkAndCreateComicImprintTable } from "./models/comicImprint.js";
 import { checkAndCreateComicSeriesGroupTable } from "./models/comicSeriesGroup.js";
+import { checkAndCreateComicBookMetadataSeriesGroupMappingTable } from "./models/comicBookMetadataSeriesGroupMapping.js";
 import { checkAndCreateComicSeriesStoryArcTable } from "./models/comicSeriesStoryArc.js";
 import { checkAndCreateComicCountryTable } from "./models/comicCountry.js";
 import { checkAndCreateComicFormatTable } from "./models/comicFormat.js";
@@ -84,6 +85,8 @@ const initializeDatabase = async () => {
   await checkAndCreateComicBookMetadataRolesTable();
   // comic_book_series_mapping
   await checkAndCreateComicBookSeriesMappingTable();
+  // comic_book_metadata_series_group_mapping
+  await checkAndCreateComicBookMetadataSeriesGroupMappingTable();
 };
 
 export { checkComicBookDataDirectoryExists, initializeDatabase };
