@@ -33,6 +33,8 @@ import { insertComicFormatToDatabase } from "../models/comicFormat.js";
 import { getComicLanguageIdFromCode } from "../models/comicLanguage.js";
 import { getComicMangaSettingsId } from "../models/comicMangaSettings.js";
 import { insertComicImprintIntoDB } from "../models/comicImprint.js";
+import { insertComicSeriesGroup } from "../models/comicSeriesGroup.js";
+import { insertComicBookMetadataSeriesGroupMappingIntoDb } from "../models/comicBookMetadataSeriesGroupMapping.js";
 
 /**
  * Checks if the DATA_DIR environment variable is set.
@@ -626,7 +628,42 @@ export const addFilesToDatabase = async () => {
 
     /*
     ********************************************************************************************************************
+    Adding the comic book series group(s) to the database if they exist, comic_series_group table.
+    ********************************************************************************************************************
+    */
 
+    let comicSeriesGroups = [];
+
+    if (comicFileXmlData && comicFileXmlData.seriesGroup) {
+      let parsedComicSeriesGroups = comicFileXmlData.seriesGroup.split(",").map((group) => group.trim());
+
+      for (const group of parsedComicSeriesGroups) {
+        const seriesGroupId = await insertComicSeriesGroup(group);
+
+        if (seriesGroupId) {
+          comicSeriesGroups.push(seriesGroupId);
+        }
+      }
+    }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book series group(s) mapping to the database, comic_book_metadata_series_group_mapping table.
+    ********************************************************************************************************************
+    */
+
+    if (comicBookMetadataId && comicSeriesGroups.length > 0) {
+      for (const seriesGroupId of comicSeriesGroups) {
+        await insertComicBookMetadataSeriesGroupMappingIntoDb(
+          comicBookMetadataId,
+          seriesGroupId
+        );
+      }
+    }
+
+    /*
+    ********************************************************************************************************************
+    Update the comic book metadata with the new metadata properties, related to other tables.
     ********************************************************************************************************************
     */
 
