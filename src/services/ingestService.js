@@ -35,6 +35,8 @@ import { getComicMangaSettingsId } from "../models/comicMangaSettings.js";
 import { insertComicImprintIntoDB } from "../models/comicImprint.js";
 import { insertComicSeriesGroup } from "../models/comicSeriesGroup.js";
 import { insertComicBookMetadataSeriesGroupMappingIntoDb } from "../models/comicBookMetadataSeriesGroupMapping.js";
+import { insertComicGenreIntoDb } from "../models/comicGenre.js";
+import { insertComicBookMetadataGenreMappingIntoDb } from "../models/comicBookMetadataGenreMapping.js";
 
 /**
  * Checks if the DATA_DIR environment variable is set.
@@ -657,6 +659,41 @@ export const addFilesToDatabase = async () => {
         await insertComicBookMetadataSeriesGroupMappingIntoDb(
           comicBookMetadataId,
           seriesGroupId
+        );
+      }
+    }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book genre(s) to the database if they exist, comic_genre table.
+    ********************************************************************************************************************
+    */
+
+    let comicGenres = [];
+
+    if (comicFileXmlData && comicFileXmlData.genre && comicFileXmlData.genre.length > 0) {
+      let parsedComicGenres = comicFileXmlData.genre.split(",").map((genre) => genre.trim());
+
+      for (const genre of parsedComicGenres) {
+        const genreId = await insertComicGenreIntoDb(genre);
+
+        if (genreId) {
+          comicGenres.push(genreId);
+        }
+      }
+    }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book genre(s) mapping to the database, comic_book_metadata_genre_mapping table.
+    ********************************************************************************************************************
+    */
+
+    if (comicBookMetadataId && comicGenres.length > 0) {
+      for (const genreId of comicGenres) {
+        await insertComicBookMetadataGenreMappingIntoDb(
+          comicBookMetadataId,
+          genreId
         );
       }
     }
