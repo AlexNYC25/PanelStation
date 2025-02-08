@@ -129,7 +129,7 @@ export const parseComicInfoXmlForMetadata = async (comicInfoXmlObj) => {
     format: comicInfo.Format ? comicInfo.Format[0] : null,
     blackAndWhite: comicInfo.BlackAndWhite && yesNoValues.includes(comicInfo.BlackAndWhite) ? comicInfo.BlackAndWhite : null,
     manga: comicInfo.Manga && mangaValues.includes(comicInfo.Manga[0]) ? comicInfo.Manga[0] : null,
-    characters: comicInfo.Character ? comicInfo.Character[0] : null, // NOTE: comma-separated array
+    characters: comicInfo.Characters ? comicInfo.Characters[0] : null, // NOTE: comma-separated array
     teams: comicInfo.Team ? comicInfo.Team[0] : null, // NOTE: comma-separated array
     locations: comicInfo.Location ? comicInfo.Location[0] : null, // NOTE: comma-separated array
     scanInformation: comicInfo.ScanInformation ? comicInfo.ScanInformation[0] : null,
