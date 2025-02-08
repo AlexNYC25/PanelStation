@@ -14,7 +14,7 @@ export const checkAndCreateComicCharactersTable = async () => {
     CREATE TABLE comic_characters (
       id SERIAL PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
-      description TEXT
+      UNIQUE (name)
     );
   `;
 
@@ -43,5 +43,30 @@ export const deleteComicCharactersTable = async () => {
     logger.debug("comic_characters table deleted successfully.");
   } catch (err) {
     logger.error("Error deleting comic_characters table:", err);
+  }
+};
+
+export const insertComicCharacterIntoDb = async (name) => {
+  const selectQuery = `
+    SELECT id FROM comic_characters WHERE name = $1;
+  `;
+
+  const insertQuery = `
+    INSERT INTO comic_characters (name) VALUES ($1) RETURNING id;
+  `;
+
+  try {
+    const result = await runQuery(selectQuery, [name]);
+
+    if (result.length === 0) {
+      const insertResult = await runQuery(insertQuery, [name]);
+      logger.debug(`Comic character ${name} inserted successfully.`);
+      return insertResult[0].id;
+    } else {
+      logger.debug(`Comic character ${name} already exists.`);
+      return result[0].id;
+    }
+  } catch (err) {
+    logger.error(`Error inserting comic character ${name} into db:`, err);
   }
 };
