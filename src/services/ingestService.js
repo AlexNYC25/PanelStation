@@ -39,6 +39,8 @@ import { insertComicGenreIntoDb } from "../models/comicGenre.js";
 import { insertComicBookMetadataGenreMappingIntoDb } from "../models/comicBookMetadataGenreMapping.js";
 import { insertComicCharacterIntoDb } from "../models/comicCharacters.js";
 import { insertComicBookMetadataCharacterMappingIntoDb } from "../models/comicBookMetadataCharacterMapping.js";
+import { insertComicTeamIntoDb } from "../models/comicTeams.js";
+import { insertComicBookMetadataTeamMappingIntoDb } from "../models/comicBookMetadataTeamMapping.js";
 
 /**
  * Checks if the DATA_DIR environment variable is set.
@@ -730,6 +732,40 @@ export const addFilesToDatabase = async () => {
         await insertComicBookMetadataCharacterMappingIntoDb(
           comicBookMetadataId,
           characterId
+        );
+      }
+    }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book team(s) to the database if they exist, comic_teams table.
+    ********************************************************************************************************************
+    */
+
+    let comicTeams = [];
+    if (comicFileXmlData && comicFileXmlData.teams) {
+      const teams = comicFileXmlData.teams.split(",").map((team) => team.trim());
+
+      for (const team of teams) {
+        let comicTeamId = await insertComicTeamIntoDb(team);
+
+        if (comicTeamId) {
+          comicTeams.push(comicTeamId);
+        }
+      }
+    }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book team(s) mapping to the database, comic_book_metadata_team_mapping table.
+    ********************************************************************************************************************
+    */
+
+    if (comicBookMetadataId && comicTeams.length > 0) {
+      for (const teamId of comicTeams) {
+        await insertComicBookMetadataTeamMappingIntoDb(
+          comicBookMetadataId,
+          teamId
         );
       }
     }
