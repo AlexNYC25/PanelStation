@@ -14,7 +14,7 @@ export const checkAndCreateComicTeamsTable = async () => {
     CREATE TABLE comic_teams (
       id SERIAL PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
-      description TEXT
+      UNIQUE (name)
     );
   `;
 
@@ -43,5 +43,28 @@ export const deleteComicTeamsTable = async () => {
     logger.debug("comic_teams table deleted successfully.");
   } catch (err) {
     logger.error("Error deleting comic_teams table:", err);
+  }
+};
+
+export const insertComicTeamIntoDb = async (name) => {
+  const selectQuery = `
+    SELECT id FROM comic_teams WHERE name = $1;
+  `;
+
+  const insertQuery = `
+    INSERT INTO comic_teams (name) VALUES ($1) RETURNING id;
+  `;
+
+  try {
+    const result = await runQuery(selectQuery, [name]);
+
+    if (result.length > 0) {
+      return result[0].id;
+    }
+
+    const insertResult = await runQuery(insertQuery, [name]);
+    return insertResult[0].id;
+  } catch (err) {
+    logger.error("Error inserting comic team into db:", err);
   }
 };
