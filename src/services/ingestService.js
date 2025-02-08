@@ -37,6 +37,8 @@ import { insertComicSeriesGroup } from "../models/comicSeriesGroup.js";
 import { insertComicBookMetadataSeriesGroupMappingIntoDb } from "../models/comicBookMetadataSeriesGroupMapping.js";
 import { insertComicGenreIntoDb } from "../models/comicGenre.js";
 import { insertComicBookMetadataGenreMappingIntoDb } from "../models/comicBookMetadataGenreMapping.js";
+import { insertComicCharacterIntoDb } from "../models/comicCharacters.js";
+import { insertComicBookMetadataCharacterMappingIntoDb } from "../models/comicBookMetadataCharacterMapping.js";
 
 /**
  * Checks if the DATA_DIR environment variable is set.
@@ -694,6 +696,40 @@ export const addFilesToDatabase = async () => {
         await insertComicBookMetadataGenreMappingIntoDb(
           comicBookMetadataId,
           genreId
+        );
+      }
+    }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book character(s) to the database if they exist, comic_characters table.
+    ********************************************************************************************************************
+    */
+
+    let comicCharacters = [];
+    if(comicFileXmlData && comicFileXmlData.characters) {
+      const characters = comicFileXmlData.characters.split(",").map((character) => character.trim());
+
+      for (const character of characters) {
+        let comicCharacterId = await insertComicCharacterIntoDb(character);
+
+        if (comicCharacterId) {
+          comicCharacters.push(comicCharacterId);
+        }
+      }
+    }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book character(s) mapping to the database, comic_book_metadata_character_mapping table.
+    ********************************************************************************************************************
+    */
+
+    if (comicBookMetadataId && comicCharacters.length > 0) {
+      for (const characterId of comicCharacters) {
+        await insertComicBookMetadataCharacterMappingIntoDb(
+          comicBookMetadataId,
+          characterId
         );
       }
     }
