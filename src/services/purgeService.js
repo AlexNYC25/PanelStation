@@ -22,6 +22,7 @@ import { deleteComicMangaSettingsTable } from "../models/comicMangaSettings.js";
 import { deleteComicRatingsTable } from "../models/comicRatings.js";
 import { deleteComicTagsTable } from "../models/comicTags.js";
 import { deleteComicTeamsTable } from "../models/comicTeams.js";
+import { deleteComicBookMetadataCharacterMappingTable } from "../models/comicBookMetadataCharacterMapping.js";
 import { initializeDatabase } from "../startup.js";
 
 export const purgeService = async (req, res) => {
@@ -35,6 +36,8 @@ export const purgeService = async (req, res) => {
         await deleteComicBookMetadataSeriesGroupMappingTable();
         // comic_book_metadata_genre_mapping
         await deleteComicBookMetadataGenreMappingTable();
+        // comic_book_metadata_character_mapping
+        await deleteComicBookMetadataCharacterMappingTable();
         
         // Drop the main tables
         // comic_book_metadata

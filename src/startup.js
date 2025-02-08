@@ -25,6 +25,7 @@ import { checkAndCreateComicTeamsTable } from "./models/comicTeams.js";
 import { checkAndCreateComicCharactersTable } from "./models/comicCharacters.js";
 import { checkAndCreateComicGenreTable } from "./models/comicGenre.js";
 import { checkAndCreateComicBookMetadataGenreMappingTable } from "./models/comicBookMetadataGenreMapping.js";
+import { checkAndCreateComicBookMetadataCharacterMappingTable } from "./models/comicBookMetadataCharacterMapping.js";
 
 const checkComicBookDataDirectoryExists = () => {
   const dataDir = process.env.DATA_DIR;
@@ -90,6 +91,8 @@ const initializeDatabase = async () => {
   await checkAndCreateComicBookMetadataSeriesGroupMappingTable();
   // comic_book_metadata_genre_mapping
   await checkAndCreateComicBookMetadataGenreMappingTable();
+  // comic_book_metadata_character_mapping
+  await checkAndCreateComicBookMetadataCharacterMappingTable();
 };
 
 export { checkComicBookDataDirectoryExists, initializeDatabase };
