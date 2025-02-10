@@ -45,3 +45,29 @@ export const deleteComicSeriesStoryArcTable = async () => {
     logger.error("Error deleting comic_series_story_arc table:", err);
   }
 };
+
+export const insertComicSeriesStoryArc = async (name) => {
+  const selectQuery = `
+    SELECT * FROM comic_series_story_arc
+    WHERE name = $1;
+  `;
+
+  const insertQuery = `
+    INSERT INTO comic_series_story_arc (name)
+    VALUES ($1)
+    RETURNING *;
+  `;
+
+  try {
+    const selectResult = await runQuery(selectQuery, [name]);
+
+    if (selectResult.length > 0) {
+      return selectResult[0]?.id;
+    }
+
+    const insertResult = await runQuery(insertQuery, [name]);
+    return insertResult[0]?.id;
+  } catch (err) {
+    logger.error("Error inserting comic series story arc:", err);
+  }
+};
