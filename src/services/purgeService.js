@@ -24,6 +24,7 @@ import { deleteComicTagsTable } from "../models/comicTags.js";
 import { deleteComicTeamsTable } from "../models/comicTeams.js";
 import { deleteComicBookMetadataCharacterMappingTable } from "../models/comicBookMetadataCharacterMapping.js";
 import { deleteComicBookMetadataTeamMappingTable } from "../models/comicBookMetadataTeamMapping.js";
+import { deleteComicBookMetadataLocationMappingTable } from "../models/comicBookMetadataLocationMapping.js";
 import { initializeDatabase } from "../startup.js";
 
 export const purgeService = async (req, res) => {
@@ -41,6 +42,8 @@ export const purgeService = async (req, res) => {
         await deleteComicBookMetadataCharacterMappingTable();
         // comic_book_metadata_team_mapping
         await deleteComicBookMetadataTeamMappingTable();
+        // comic_book_metadata_location_mapping
+        await deleteComicBookMetadataLocationMappingTable();
         
         // Drop the main tables
         // comic_book_metadata
