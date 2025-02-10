@@ -43,6 +43,8 @@ import { insertComicTeamIntoDb } from "../models/comicTeams.js";
 import { insertComicBookMetadataTeamMappingIntoDb } from "../models/comicBookMetadataTeamMapping.js";
 import { insertComicLocationIntoDb } from "../models/comicLocations.js";
 import { insertComicBookMetadataLocationMappingIntoDb } from "../models/comicBookMetadataLocationMapping.js";
+import { insertComicSeriesStoryArc } from "../models/comicSeriesStoryArc.js";
+import { insertComicBookMetadataStoryArcMappingIntoDB } from "../models/comicBookMetadataStoryArcMapping.js";
 
 /**
  * Checks if the DATA_DIR environment variable is set.
@@ -802,6 +804,41 @@ export const addFilesToDatabase = async () => {
         await insertComicBookMetadataLocationMappingIntoDb(
           comicBookMetadataId,
           locationId
+        );
+      }
+    }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book series story arc(s) to the database if they exist, comic_series_story_arc table.
+    ********************************************************************************************************************
+    */
+
+    let comicSeriesStoryArcs = [];
+
+    if (comicFileXmlData && comicFileXmlData.storyArc) {
+      const storyArcs = comicFileXmlData.storyArc.split(",").map((storyArc) => storyArc.trim());
+
+      for (const storyArc of storyArcs) {
+        let comicSeriesStoryArcId = await insertComicSeriesStoryArc(storyArc);
+
+        if (comicSeriesStoryArcId) {
+          comicSeriesStoryArcs.push(comicSeriesStoryArcId);
+        }
+      }
+    }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book series story arc(s) mapping to the database, comic_book_metadata_story_arc_mapping table.
+    ********************************************************************************************************************
+    */
+
+    if (comicBookMetadataId && comicSeriesStoryArcs.length > 0) {
+      for (const storyArcId of comicSeriesStoryArcs) {
+        await insertComicBookMetadataStoryArcMappingIntoDB(
+          comicBookMetadataId,
+          storyArcId
         );
       }
     }
