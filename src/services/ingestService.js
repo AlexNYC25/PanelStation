@@ -41,6 +41,8 @@ import { insertComicCharacterIntoDb } from "../models/comicCharacters.js";
 import { insertComicBookMetadataCharacterMappingIntoDb } from "../models/comicBookMetadataCharacterMapping.js";
 import { insertComicTeamIntoDb } from "../models/comicTeams.js";
 import { insertComicBookMetadataTeamMappingIntoDb } from "../models/comicBookMetadataTeamMapping.js";
+import { insertComicLocationIntoDb } from "../models/comicLocations.js";
+import { insertComicBookMetadataLocationMappingIntoDb } from "../models/comicBookMetadataLocationMapping.js";
 
 /**
  * Checks if the DATA_DIR environment variable is set.
@@ -766,6 +768,40 @@ export const addFilesToDatabase = async () => {
         await insertComicBookMetadataTeamMappingIntoDb(
           comicBookMetadataId,
           teamId
+        );
+      }
+    }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book location(s) to the database if they exist, comic_locations table.
+    ********************************************************************************************************************
+    */
+
+    let comicLocations = [];
+    if (comicFileXmlData && comicFileXmlData.locations) {
+      const locations = comicFileXmlData.locations.split(",").map((location) => location.trim());
+
+      for (const location of locations) {
+        let comicLocationId = await insertComicLocationIntoDb(location);
+
+        if (comicLocationId) {
+          comicLocations.push(comicLocationId);
+        }
+      }
+    }
+
+    /*
+    ********************************************************************************************************************
+    Adding the comic book locations(s) mapping to the database, comic_book_metadata_location_mapping table.
+    ********************************************************************************************************************
+    */
+    
+    if (comicBookMetadataId && comicLocations.length > 0) {
+      for (const locationId of comicLocations) {
+        await insertComicBookMetadataLocationMappingIntoDb(
+          comicBookMetadataId,
+          locationId
         );
       }
     }
